@@ -1,0 +1,1 @@
+from barl_envs.renderers.room_renderer import RoomRenderer
