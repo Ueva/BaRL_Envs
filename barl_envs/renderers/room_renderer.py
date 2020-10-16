@@ -21,27 +21,23 @@ START = "S"
 GOAL = "G"
 AGENT = "A"
 
-colours = {
-    FLOOR : WHITE,
-    WALL : BLACK,
-    AGENT : BLUE,
-    START : RED,
-    GOAL : GREEN
-}
+colours = {FLOOR: WHITE, WALL: BLACK, AGENT: BLUE, START: RED, GOAL: GREEN}
 
 TILESIZE = 10
 
-class RoomRenderer(object) :
 
-    def __init__(self, room_layout, start_state = None, goal_state = None) :
+class RoomRenderer(object):
+    def __init__(self, room_layout, start_state=None, goal_state=None):
 
         self._update_room_layout(room_layout, start_state, goal_state)
 
         # Initialise pygame and display window.
         pygame.init()
-        self.display_window = pygame.display.set_mode((self.width * TILESIZE, self.height * TILESIZE))
+        self.display_window = pygame.display.set_mode(
+            (self.width * TILESIZE, self.height * TILESIZE)
+        )
 
-    def _update_room_layout(self, room_layout, start_state = None, goal_state = None) :
+    def _update_room_layout(self, room_layout, start_state=None, goal_state=None):
         self.rooms = room_layout.tolist()
         self.height = len(room_layout)
         self.width = len(room_layout[0])
@@ -49,8 +45,7 @@ class RoomRenderer(object) :
         self.start_state = start_state
         self.goal_state = goal_state
 
-
-    def update(self, agent_position, room_layout, start_state = None, goal_state = None) :
+    def update(self, agent_position, room_layout, start_state=None, goal_state=None):
         pygame.event.get()
 
         self._update_room_layout(room_layout, start_state, goal_state)
@@ -60,12 +55,12 @@ class RoomRenderer(object) :
         current_rooms = self.rooms[:]
 
         # Designate the start tile.
-        if (self.start_state is not None) :
+        if self.start_state is not None:
             i, j = self.start_state
             current_rooms[i][j] = START
 
         # Designate the goal tile.
-        if (self.goal_state is not None) :
+        if self.goal_state is not None:
             i, j = self.goal_state
             current_rooms[i][j] = GOAL
 
@@ -74,9 +69,13 @@ class RoomRenderer(object) :
         current_rooms[i][j] = AGENT
 
         # Draw the room.
-        for y in range (0, self.height) :
-            for x in range(0, self.width) :
-                pygame.draw.rect(self.display_window, colours[current_rooms[y][x]], (x * TILESIZE, y * TILESIZE, TILESIZE, TILESIZE))
+        for y in range(0, self.height):
+            for x in range(0, self.width):
+                pygame.draw.rect(
+                    self.display_window,
+                    colours[current_rooms[y][x]],
+                    (x * TILESIZE, y * TILESIZE, TILESIZE, TILESIZE),
+                )
 
         # Update the display.
         pygame.display.update()
@@ -84,6 +83,6 @@ class RoomRenderer(object) :
         # Reset room representation.
         self.rooms = backup
 
-    def close(self) :
+    def close(self):
         pygame.quit()
         sys.exit()
