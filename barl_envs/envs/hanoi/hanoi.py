@@ -27,12 +27,8 @@ class HanoiEnvironment(gym.Env):
         self.num_poles = num_poles
 
         # Define action-space and state-space.
-        self.action_space = gym.spaces.Discrete(
-            math.factorial(self.num_poles) / math.factorial(self.num_poles - 2)
-        )
-        self.state_space = gym.spaces.Tuple(
-            self.num_disks * (gym.spaces.Discrete(self.num_poles),)
-        )
+        self.action_space = gym.spaces.Discrete(math.factorial(self.num_poles) / math.factorial(self.num_poles - 2))
+        self.state_space = gym.spaces.Tuple(self.num_disks * (gym.spaces.Discrete(self.num_poles),))
 
         # Initialise action mappings.
         self.action_list = list(itertools.permutations(list(range(self.num_poles)), 2))
@@ -44,7 +40,7 @@ class HanoiEnvironment(gym.Env):
 
         self.renderer = None
 
-    def reset(self):
+    def reset(self, state=None):
         """
         Resets the environment to an initial state, with all disks stacked
         on the leftmost pole (i.e. pole with index zero).
@@ -52,7 +48,12 @@ class HanoiEnvironment(gym.Env):
         Returns:
             tuple: Initial environmental state.
         """
-        self.current_state = self.num_disks * (0,)
+
+        if state is None:
+            self.current_state = self.num_disks * (0,)
+        else:
+            self.current_state = copy.deepcopy(state)
+
         self.terminal = False
         return copy.deepcopy(self.current_state)
 
@@ -158,6 +159,15 @@ class HanoiEnvironment(gym.Env):
         legal_action_mask = map(lambda action: action in legal_actions, all_actions)
 
         return list(legal_action_mask)
+
+    def get_initial_states(self):
+        """
+        Returns the initial state(s) for this environment.
+
+        Returns:
+            List[Tuple[int]]: The initial state(s) in this environment.
+        """
+        return [self.num_disks * (0,)]
 
     def get_successors(self, state=None):
         """
