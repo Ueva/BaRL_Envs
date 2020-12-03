@@ -1,2 +1,3 @@
 from barl_envs.renderers.room_renderer import RoomRenderer
 from barl_envs.renderers.hanoi_renderer import HanoiRenderer
+from barl_envs.renderers.taxi_renderer import TaxiRenderer
