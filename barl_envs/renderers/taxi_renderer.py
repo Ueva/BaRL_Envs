@@ -1,0 +1,2 @@
+class TaxiRenderer(object):
+    pass
