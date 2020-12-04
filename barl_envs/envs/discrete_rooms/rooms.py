@@ -1,3 +1,5 @@
+import gym
+import copy
 import random
 import operator
 import numpy as np
@@ -28,9 +30,7 @@ class DiscreteRoomEnvironment(object):
     Class representing a discrete "rooms-like" gridworld, as is commonly seen in the HRL literature.
     """
 
-    def __init__(
-        self, room_template_file_path, movement_penalty=-1.0, goal_reward=10.0
-    ):
+    def __init__(self, room_template_file_path, movement_penalty=-1.0, goal_reward=10.0):
         """
         Initialises a new DiscreteRoomEnvironment object.
 
@@ -129,7 +129,7 @@ class DiscreteRoomEnvironment(object):
 
         self.position = next_state
 
-        return next_state, reward, terminal
+        return next_state, reward, terminal, {}
 
     def get_available_actions(self, state=None):
         """
@@ -141,7 +141,6 @@ class DiscreteRoomEnvironment(object):
         Returns:
             [list(int)] -- The list of actions available in the given state.
         """
-
         return list(range(4))
 
     def get_action_mask(self, state=None):
@@ -182,9 +181,68 @@ class DiscreteRoomEnvironment(object):
         """
         Terminates all environment-related processes.
         """
-
         if self.renderer is not None:
             self.renderer.close()
+
+    def is_state_terminal(self, state=None):
+        """
+        Returns whether the given state is terminal or not.
+        If no state is specified, whether the current state is terminal will be returned.
+
+        Args:
+            state (tuple, optional): Whether or not the given state is terminal. Defaults to None (i.e. current state).
+
+        Returns:
+            bool: Whether or not the given state is terminal.
+        """
+        if state is None:
+            state = copy.deepcopy(self.position)
+
+        return CELL_TYPES_DICT[self.gridworld[state[0]][state[1]]] == "goal"
+
+    def get_initial_states(self):
+        """
+        Returns the initial state(s) for this environment.
+
+        Returns:
+            List[Tuple[int]]: The initial state(s) in this environment.
+        """
+        return self.initial_states
+
+    def get_successors(self, state=None):
+        """
+        Returns a list of states which can be reached by taking an action in the given state.
+        If no state is specified, a list of successor states for the current state will be returned.
+
+        Args:
+            state (tuple, optional): The state to return successors for. Defaults to None (i.e. current state).
+
+        Returns:
+            list[tuple]: A list of states reachable by taking an action in the given state.
+        """
+        if state is None:
+            state = self.position
+
+        legal_actions = self.get_available_actions(state=state)
+
+        successor_states = []
+        for action in legal_actions:
+            next_state = copy.deepcopy(state)
+            if ACTIONS_DICT[action] == "DOWN":
+                next_state = (state[0] + 1, state[1])
+            elif ACTIONS_DICT[action] == "UP":
+                next_state = (state[0] - 1, state[1])
+            elif ACTIONS_DICT[action] == "RIGHT":
+                next_state = (state[0], state[1] + 1)
+            elif ACTIONS_DICT[action] == "LEFT":
+                next_state = (state[0], state[1] - 1)
+
+            if CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]] == "wall":
+                next_state = copy.deepcopy(state)
+
+            successor_states.append(next_state)
+
+        return successor_states
 
 
 class DiscreteDefaultTwoRooms(DiscreteRoomEnvironment):
