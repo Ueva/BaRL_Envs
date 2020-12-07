@@ -178,7 +178,7 @@ class GridPacManEnvironment(object):
             position = self.position
             ghost_positions = self.ghost_positions
         else:
-            position = (state[1], state[0])
+            position = (state[0], state[1])
             ghost_positions = [state[i : i + 2] for i in range(2, len(state), 2)]
 
         # Is the agent at the goal state?
@@ -196,10 +196,66 @@ class GridPacManEnvironment(object):
         Returns:
             List[Tuple[int]]: The initial state(s) in this environment.
         """
-        return self.initial_states
+        initial_states = []
+        for agent_start in self.initial_states:
+            state = agent_start
+            for ghost_start in self.ghost_starts:
+                state = state + tuple(ghost_start)
+            initial_states.append(copy.deepcopy(state))
+
+        return initial_states
 
     def get_successors(self, state=None):
-        pass
+        if state is None:
+            position = self.position
+            ghost_positions = self.ghost_positions
+        else:
+            position = (state[0], state[1])
+            ghost_positions = [state[i : i + 2] for i in range(2, len(state), 2)]
+
+        legal_actions = self.get_available_actions(state=state)
+
+        successor_states = []
+        for action in legal_actions:
+            # Move agent.
+            next_position = copy.deepcopy(position)
+            if ACTIONS_DICT[action] == "DOWN":
+                next_position = (position[0] + 1, position[1])
+            elif ACTIONS_DICT[action] == "UP":
+                next_position = (position[0] - 1, position[1])
+            elif ACTIONS_DICT[action] == "RIGHT":
+                next_position = (position[0], position[1] + 1)
+            elif ACTIONS_DICT[action] == "LEFT":
+                next_position = (position[0], position[1] - 1)
+
+            # No movement if agent has moved into a wall.
+            if CELL_TYPES_DICT[self.gridworld[next_position[0]][next_position[1]]] == "wall":
+                next_position = copy.deepcopy(position)
+
+            # If the agent has not reached the goal, process ghost movement.
+            next_ghost_positions = copy.deepcopy(ghost_positions)
+
+            if not position == self.goal_position:
+                for i in range(self.num_ghosts):
+                    # Find shortest path from ghost position to agent position.
+                    ghost_position = ghost_positions[i]
+                    shortest_path = nx.shortest_path(
+                        self.level_graph, source=tuple(ghost_position), target=next_position
+                    )
+
+                    # Move ghost along path.
+                    if len(shortest_path) > 1:
+                        ghost_next_step = shortest_path[1]
+                        next_ghost_positions[i] = [ghost_next_step[0], ghost_next_step[1]]
+
+            # Build the state tuple.
+            next_state = next_position
+            for ghost_position in next_ghost_positions:
+                next_state = next_state + tuple(ghost_position)
+
+            successor_states.append(next_state)
+
+        return successor_states
 
     def _initialise_pacman(self, pacman_template_file):
         """
