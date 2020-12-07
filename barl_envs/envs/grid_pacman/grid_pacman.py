@@ -4,6 +4,8 @@ import random
 import numpy as np
 import networkx as nx
 
+from barl_envs.renderers import GridPacManRenderer
+
 # Import room template files.
 try:
     import importlib.resources as pkg_resources
@@ -11,7 +13,6 @@ except ImportError:
     import importlib_resources as pkg_resources
 
 from . import data
-
 
 with pkg_resources.path(data, "four_room.txt") as path:
     four_room_layout = path
@@ -48,6 +49,9 @@ class GridPacManEnvironment(object):
         self.ghost_positions = copy.deepcopy(self.ghost_starts)
         self.position = random.choice(self.initial_states)
         self.goal_position = random.choice(self.goal_states)
+
+        self.current_initial_state = self.position
+        self.current_goal_state = self.goal_position
 
         # Build the state tuple.
         state = self.position
@@ -147,7 +151,20 @@ class GridPacManEnvironment(object):
         return [True for i in range(4)]
 
     def render(self):
-        pass
+        if self.renderer is None:
+            self.renderer = GridPacManRenderer(
+                self.gridworld,
+                start_state=self.current_initial_state,
+                goal_state=self.current_goal_state,
+            )
+
+        self.renderer.update(
+            self.position,
+            self.ghost_positions,
+            self.gridworld,
+            start_state=self.current_initial_state,
+            goal_state=self.current_goal_state,
+        )
 
     def close(self):
         """
