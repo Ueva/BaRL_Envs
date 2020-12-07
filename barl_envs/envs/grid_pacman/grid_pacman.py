@@ -13,7 +13,7 @@ except ImportError:
 from . import data
 
 
-with pkg_resources.path(data, "four_rooms.txt") as path:
+with pkg_resources.path(data, "four_room.txt") as path:
     four_room_layout = path
 
 with pkg_resources.path(data, "classic.txt") as path:
@@ -51,8 +51,8 @@ class GridPacManEnvironment(object):
 
         # Build the state tuple.
         state = self.position
-        for ghost_pos in self.ghost_positions:
-            state = state + ghost_pos
+        for ghost_position in self.ghost_positions:
+            state = state + tuple(ghost_position)
 
         self.terminal = False
 
@@ -79,27 +79,31 @@ class GridPacManEnvironment(object):
         # If agent tries to move into a wall.
         if CELL_TYPES_DICT[self.gridworld[next_position[0]][next_position[1]]] == "wall":
             next_position = current_position
+
+        self.position = next_position
+
         # If the agent has reached the goal.
-        elif next_position == self.goal_position:
+        if next_position == self.goal_position:
             reward += self.goal_reward
             self.terminal = True
 
             # Build the state tuple.
             state = next_position
             for ghost_position in current_ghost_positions:
-                state = state + ghost_position
+                state = state + tuple(ghost_position)
 
             return state, reward, self.terminal, {}
 
         # Move ghosts.
-        for i in self.num_ghosts:
+        for i in range(self.num_ghosts):
             # Find shortest path from ghost position to agent position.
             ghost_position = current_ghost_positions[i]
             shortest_path = nx.shortest_path(self.level_graph, source=tuple(ghost_position), target=next_position)
 
             # Move ghost along path.
-            ghost_next_step = shortest_path[1]
-            next_ghost_positions[i] = [ghost_next_step[0], ghost_next_step[1]]
+            if len(shortest_path) > 1:
+                ghost_next_step = shortest_path[1]
+                next_ghost_positions[i] = [ghost_next_step[0], ghost_next_step[1]]
 
         # If a ghost has caught the agent.
         if any([next_position == tuple(ghost_position) for ghost_position in next_ghost_positions]):
@@ -109,7 +113,9 @@ class GridPacManEnvironment(object):
         # Build the state tuple.
         state = next_position
         for ghost_position in next_ghost_positions:
-            state = state + ghost_position
+            state = state + tuple(ghost_position)
+
+        self.ghost_positions = next_ghost_positions
 
         return state, reward, self.terminal, {}
 
@@ -207,7 +213,7 @@ class GridPacManEnvironment(object):
     def _generate_level_graph(self):
         level_graph = nx.Graph()
 
-        for y in range(self.gridworld[0]):
+        for y in range(self.gridworld.shape[0]):
             for x in range(self.gridworld.shape[1]):
 
                 if not CELL_TYPES_DICT[self.gridworld[y, x]] == "wall":
@@ -222,10 +228,10 @@ class GridPacManEnvironment(object):
         return level_graph
 
 
-class PacManFourRoom(object):
+class PacManFourRoom(GridPacManEnvironment):
     def __init__(self, movement_penalty=-1.0, goal_reward=10.0, caught_penalty=-20.0):
         super().__init__(four_room_layout, movement_penalty, goal_reward, caught_penalty)
 
 
-class PacManClassic(object):
+class PacManClassic(GridPacManEnvironment):
     pass
