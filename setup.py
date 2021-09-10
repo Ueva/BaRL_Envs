@@ -18,7 +18,11 @@ setuptools.setup(
     data_files=[
         (
             "room_files",
-            ["barl_envs/envs/discrete_rooms/data/two_rooms.txt", "barl_envs/envs/discrete_rooms/data/six_rooms.txt"],
+            [
+                "barl_envs/envs/discrete_rooms/data/two_rooms.txt",
+                "barl_envs/envs/discrete_rooms/data/six_rooms.txt",
+                "barl_envs/envs/discrete_rooms/data/xu_four_rooms.txt",
+            ],
         ),
         (
             "pacman_files",

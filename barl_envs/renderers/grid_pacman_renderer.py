@@ -74,7 +74,6 @@ class GridPacManRenderer(object):
 
         # Designate ghost tiles.
         for ghost_position in ghost_positions:
-            print(ghost_positions)
             current_rooms[ghost_position[0]][ghost_position[1]] = GHOST
 
         # Draw the room.
