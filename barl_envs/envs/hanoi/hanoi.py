@@ -1,19 +1,17 @@
 # Much of this code is based on: https://github.com/RobertTLange/gym-hanoi/blob/master/gym_hanoi/envs/hanoi_env.py
-import sys
-import gym
-import math
 import copy
 import itertools
-import numpy as np
+
+from barl_simpleoptions.environment import BaseEnvironment
 
 from barl_envs.renderers import HanoiRenderer
 
 
-class HanoiEnvironment(gym.Env):
+class HanoiEnvironment(BaseEnvironment):
 
     metadata = {"render.modes": ["human"]}
 
-    def __init__(self, num_disks=3, num_poles=3):
+    def __init__(self, num_disks=3, num_poles=3, options=[]):
         """
         Instantiates a new HanoiEnvironment object with a specified number
         of disks and poles.
@@ -22,20 +20,21 @@ class HanoiEnvironment(gym.Env):
             num_disks (int, optional): Number of poles in the environment. Defaults to 3.
             num_poles (int, optional): Number of disks in the environment. Defaults to 3.
         """
+        super().__init__(options)
 
         self.num_disks = num_disks
         self.num_poles = num_poles
 
         # Define action-space and state-space.
-        self.action_space = gym.spaces.Discrete(math.factorial(self.num_poles) / math.factorial(self.num_poles - 2))
-        self.state_space = gym.spaces.Tuple(self.num_disks * (gym.spaces.Discrete(self.num_poles),))
+        # self.action_space = gym.spaces.Discrete(math.factorial(self.num_poles) / math.factorial(self.num_poles - 2))
+        # self.state_space = gym.spaces.Tuple(self.num_disks * (gym.spaces.Discrete(self.num_poles),))
 
         # Initialise action mappings.
         self.action_list = list(itertools.permutations(list(range(self.num_poles)), 2))
 
         # Initialise environment state variables.
         self.current_state = None
-        self.goal_state = self.num_disks * (self.num_poles,)
+        self.goal_state = self.num_disks * (self.num_poles - 1,)
         self.terminal = True
 
         self.renderer = None
@@ -112,6 +111,9 @@ class HanoiEnvironment(gym.Env):
             self.renderer.close()
             self.renderer = None
 
+    def get_action_space(self):
+        return copy.deepcopy(self.action_list)
+
     def get_available_actions(self, state=None):
         """
         Returns the list of actions available in the given state.
@@ -126,12 +128,15 @@ class HanoiEnvironment(gym.Env):
         if state is None:
             state = self.current_state
 
-        legal_actions = []
-        for i in range(len(self.action_list)):
-            if self._is_action_legal(self.action_list[i], state=state):
-                legal_actions.append(i)
+        if self.is_state_terminal(state):
+            return []
+        else:
+            legal_actions = []
+            for i in range(len(self.action_list)):
+                if self._is_action_legal(self.action_list[i], state=state):
+                    legal_actions.append(i)
 
-        return legal_actions
+            return legal_actions
 
     def get_action_mask(self, state=None):
         """
