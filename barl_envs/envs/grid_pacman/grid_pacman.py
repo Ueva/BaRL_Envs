@@ -1,5 +1,4 @@
 from barl_simpleoptions.environment import BaseEnvironment
-import gym
 import copy
 import random
 import numpy as np
@@ -18,8 +17,8 @@ from . import data
 with pkg_resources.path(data, "four_room.txt") as path:
     four_room_layout = path
 
-with pkg_resources.path(data, "classic.txt") as path:
-    classic_layout = path
+# with pkg_resources.path(data, "classic.txt") as path:
+#     classic_layout = path
 
 CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent", "X": "ghost"}
 
@@ -333,5 +332,5 @@ class PacManFourRoom(GridPacManEnvironment):
         super().__init__(four_room_layout, movement_penalty, goal_reward, caught_penalty)
 
 
-class PacManClassic(GridPacManEnvironment):
-    pass
+# class PacManClassic(GridPacManEnvironment):
+#    pass

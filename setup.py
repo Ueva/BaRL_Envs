@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="barl_envs",
-    version="0.0.1",
+    version="0.1.1",
     author="Joshua Evans",
     author_email="jbe25@bath.ac.uk",
     description="A package which provides implementations of various reinforcement learning environments.",
@@ -22,10 +22,10 @@ setuptools.setup(
         ),
         (
             "pacman_files",
-            ["barl_envs/envs/grid_pacman/data/four_room.txt", "barl_envs/envs/grid_pacman/data/classic.txt"],
+            ["barl_envs/envs/grid_pacman/data/four_room.txt"],
         ),
     ],
-    install_requires=["numpy", "networkx", "pygame", "gym"],
+    install_requires=["numpy", "networkx", "pygame"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
