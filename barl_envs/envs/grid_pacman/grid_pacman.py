@@ -331,6 +331,5 @@ class PacManFourRoom(GridPacManEnvironment):
     def __init__(self, movement_penalty=-1.0, goal_reward=10.0, caught_penalty=-20.0):
         super().__init__(four_room_layout, movement_penalty, goal_reward, caught_penalty)
 
-
 # class PacManClassic(GridPacManEnvironment):
 #    pass

@@ -20,6 +20,9 @@ with pkg_resources.path(data, "two_rooms.txt") as path:
 with pkg_resources.path(data, "six_rooms.txt") as path:
     default_six_room = path
 
+with pkg_resources.path(data, "xu_four_rooms.txt") as path:
+    xu_four_room = path
+
 CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent"}
 
 ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
@@ -281,3 +284,16 @@ class DiscreteDefaultSixRooms(DiscreteRoomEnvironment):
 
     def __init__(self, movement_penalty=-1, goal_reward=10):
         super().__init__(default_six_room, movement_penalty, goal_reward)
+
+
+class DiscreteXuFourRooms(DiscreteRoomEnvironment):
+    """
+    The four-room environment used in Xu X., Yang M. & Li G. 2019
+    "Constructing Temporally Extended Actions through Incremental
+    Community Detection". Contains four offset rooms.
+    Goal Reward: +10
+    Movement Penalty: -1
+    """
+
+    def __init__(self, movement_penalty=-1, goal_reward=10):
+        super().__init__(xu_four_room, movement_penalty, goal_reward)
