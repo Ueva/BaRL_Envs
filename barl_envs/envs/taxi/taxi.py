@@ -1,12 +1,7 @@
-from os import terminal_size
-from types import TracebackType
-
-from gym.core import ActionWrapper
-import gym
-import math
 import copy
 import random
-import itertools
+
+from barl_simpleoptions.environment import BaseEnvironment
 
 from barl_envs.renderers import TaxiRenderer
 
@@ -15,12 +10,12 @@ ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT", 4: "PICKUP", 5: "PUTD
 TAXI_RANKS = [0, 3, 20, 24, -1]
 
 
-class TaxiEnvironment(object):
+class TaxiEnvironment(BaseEnvironment):
     def __init__(self, movement_penalty=-1.0, goal_reward=20.0, invalid_penalty=-10):
 
         # Define action-space and state-space.
-        self.action_space = gym.spaces.Discrete(6)
-        self.state_space = gym.spaces.Tuple((gym.spaces.Discrete(25), gym.spaces.Discrete(5), gym.spaces.Discrete(4)))
+        # self.action_space = gym.spaces.Discrete(6)
+        # self.state_space = gym.spaces.Tuple((gym.spaces.Discrete(25), gym.spaces.Discrete(5), gym.spaces.Discrete(4)))
 
         self.movement_penalty = movement_penalty
         self.goal_reward = goal_reward
@@ -107,6 +102,9 @@ class TaxiEnvironment(object):
             self.renderer.close()
             self.renderer = None
 
+    def get_action_space(self):
+        return [0, 1, 2, 3, 4, 5]
+
     def get_available_actions(self, state=None):
         """
         Returns the list of actions available in the given state.
@@ -118,7 +116,13 @@ class TaxiEnvironment(object):
         Returns:
             List[int]: List of actions available in the given state.
         """
-        return [0, 1, 2, 3, 4, 5]
+        if state is None:
+            state = self.current_state
+
+        if self.is_state_terminal(state):
+            return []
+        else:
+            return self.get_action_space()
 
     def get_action_mask(self, state=None):
         """
@@ -140,7 +144,7 @@ class TaxiEnvironment(object):
         legal_actions = self.get_available_actions(state=state)
 
         # Get list of all actions.
-        all_actions = list(range(len(self.action_list)))
+        all_actions = self.get_action_space()
 
         # True is action is in legal actions, false otherwise.
         legal_action_mask = map(lambda action: action in legal_actions, all_actions)
@@ -181,7 +185,8 @@ class TaxiEnvironment(object):
                 for destination_square in range(4):
                     initial_states.append((start_square, source_square, destination_square))
 
-        return initial_states
+        # Only return initial states where the passenger does not start on its destination square.
+        return [(start, source, dest) for (start, source, dest) in initial_states if source != dest]
 
     def get_successors(self, state=None):
         """

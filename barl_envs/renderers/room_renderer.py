@@ -83,4 +83,3 @@ class RoomRenderer(object):
 
     def close(self):
         pygame.quit()
-        sys.exit()

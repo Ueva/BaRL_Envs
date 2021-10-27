@@ -1,8 +1,8 @@
-import gym
 import copy
 import random
-import operator
 import numpy as np
+
+from barl_simpleoptions import BaseEnvironment
 
 from barl_envs.renderers import RoomRenderer
 
@@ -28,12 +28,12 @@ CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "a
 ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
 
 
-class DiscreteRoomEnvironment(object):
+class DiscreteRoomEnvironment(BaseEnvironment):
     """
     Class representing a discrete "rooms-like" gridworld, as is commonly seen in the HRL literature.
     """
 
-    def __init__(self, room_template_file_path, movement_penalty=-1.0, goal_reward=10.0):
+    def __init__(self, room_template_file_path, movement_penalty=-1.0, goal_reward=10.0, options=[]):
         """
         Initialises a new DiscreteRoomEnvironment object.
 
@@ -44,6 +44,7 @@ class DiscreteRoomEnvironment(object):
             movement_penalty {float} -- Penalty applied each time step for taking an action. (default: {-1.0})
             goal_reward {float} -- Reward given to the agent upon reaching a goal state. (default: {10.0})
         """
+        super().__init__(options)
 
         self._initialise_rooms(room_template_file_path)
         self.movement_penalty = movement_penalty
@@ -134,6 +135,9 @@ class DiscreteRoomEnvironment(object):
 
         return next_state, reward, terminal, {}
 
+    def get_action_space(self):
+        return list(range(4))
+
     def get_available_actions(self, state=None):
         """
         Returns the set of available actions for the given state (by default, the current state).
@@ -144,7 +148,13 @@ class DiscreteRoomEnvironment(object):
         Returns:
             [list(int)] -- The list of actions available in the given state.
         """
-        return list(range(4))
+        if state is None:
+            state = copy.deepcopy(self.position)
+
+        if self.is_state_terminal(state):
+            return []
+        else:
+            return self.get_action_space()
 
     def get_action_mask(self, state=None):
         """
@@ -159,7 +169,13 @@ class DiscreteRoomEnvironment(object):
         Returns:
             [list(bool)] -- A boolean mask indicating action availability in the current state.
         """
-        return [True for i in range(4)]
+        if state is None:
+            state = copy.deepcopy(self.position)
+
+        if self.is_state_terminal(state):
+            return [False for i in range(4)]
+        else:
+            return [True for i in range(4)]
 
     def render(self):
         """
@@ -210,7 +226,7 @@ class DiscreteRoomEnvironment(object):
         Returns:
             List[Tuple[int]]: The initial state(s) in this environment.
         """
-        return self.initial_states
+        return copy.deepcopy(self.initial_states)
 
     def get_successors(self, state=None):
         """

@@ -1,4 +1,4 @@
-import gym
+from barl_simpleoptions.environment import BaseEnvironment
 import copy
 import random
 import numpy as np
@@ -17,15 +17,15 @@ from . import data
 with pkg_resources.path(data, "four_room.txt") as path:
     four_room_layout = path
 
-with pkg_resources.path(data, "classic.txt") as path:
-    classic_layout = path
+# with pkg_resources.path(data, "classic.txt") as path:
+#     classic_layout = path
 
 CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent", "X": "ghost"}
 
 ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
 
 
-class GridPacManEnvironment(object):
+class GridPacManEnvironment(BaseEnvironment):
     def __init__(self, pacman_template_file, movement_penalty=-1.0, goal_reward=10.0, caught_penalty=-20.0):
 
         # Initialise environment variables.
@@ -38,9 +38,9 @@ class GridPacManEnvironment(object):
         self.position = (0, 0)
 
         # Define action-space and state-space shapes.
-        env_shape = gym.spaces.Discrete(self.gridworld.shape[0]), gym.spaces.Discrete(self.gridworld.shape[1])
-        self.action_space = gym.spaces.Discrete(4)
-        self.state_space = gym.spaces.Tuple(env_shape + env_shape * self.num_ghosts)
+        # env_shape = gym.spaces.Discrete(self.gridworld.shape[0]), gym.spaces.Discrete(self.gridworld.shape[1])
+        # self.action_space = gym.spaces.Discrete(4)
+        # self.state_space = gym.spaces.Tuple(env_shape + env_shape * self.num_ghosts)
 
         self.terminal = True
         self.renderer = None
@@ -123,6 +123,9 @@ class GridPacManEnvironment(object):
 
         return state, reward, self.terminal, {}
 
+    def get_action_space(self):
+        return list(range(4))
+
     def get_available_actions(self, state=None):
         """
         Returns the set of available actions for the given state (by default, the current state).
@@ -133,7 +136,13 @@ class GridPacManEnvironment(object):
         Returns:
             [list(int)] -- The list of actions available in the given state.
         """
-        return list(range(4))
+        if state is None:
+            state = self._get_state_tuple()
+
+        if self.is_state_terminal(state):
+            return []
+        else:
+            return self.get_action_space()
 
     def get_action_mask(self, state=None):
         """
@@ -148,7 +157,13 @@ class GridPacManEnvironment(object):
         Returns:
             [list(bool)] -- A boolean mask indicating action availability in the current state.
         """
-        return [True for i in range(4)]
+        if state is None:
+            state = self._get_state_tuple()
+
+        if self.is_state_terminal(state):
+            return [False for i in self.get_action_space()]
+        else:
+            return [True for i in self.get_action_space()]
 
     def render(self):
         if self.renderer is None:
@@ -300,11 +315,21 @@ class GridPacManEnvironment(object):
 
         return level_graph
 
+    def _get_state_tuple(self, position=None, ghost_positions=None):
+        if position is None:
+            position = self.position
+        if ghost_positions is None:
+            ghost_positions = self.ghost_positions
+
+        state = self.position
+        for ghost_position in self.ghost_positions:
+            state = state + tuple(ghost_position)
+        return state
+
 
 class PacManFourRoom(GridPacManEnvironment):
     def __init__(self, movement_penalty=-1.0, goal_reward=10.0, caught_penalty=-20.0):
         super().__init__(four_room_layout, movement_penalty, goal_reward, caught_penalty)
 
-
-class PacManClassic(GridPacManEnvironment):
-    pass
+# class PacManClassic(GridPacManEnvironment):
+#    pass
