@@ -28,6 +28,7 @@ setuptools.setup(
                 "barl_envs/envs/discrete_rooms/data/small_rooms.txt",
                 "barl_envs/envs/discrete_rooms/data/four_rooms.txt",
                 "barl_envs/envs/discrete_rooms/data/four_rooms_holes.txt",
+                "barl_envs/envs/discrete_rooms/data/maze_rooms.txt",
             ],
         ),
         (

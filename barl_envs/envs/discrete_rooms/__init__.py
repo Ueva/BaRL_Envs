@@ -8,3 +8,4 @@ from barl_envs.envs.discrete_rooms.rooms import EmptyRoom
 from barl_envs.envs.discrete_rooms.rooms import SmallRooms
 from barl_envs.envs.discrete_rooms.rooms import FourRooms
 from barl_envs.envs.discrete_rooms.rooms import FourRoomsHoles
+from barl_envs.envs.discrete_rooms.rooms import MazeRooms

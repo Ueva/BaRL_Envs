@@ -41,6 +41,10 @@ with pkg_resources.path(data, "four_rooms.txt") as path:
 with pkg_resources.path(data, "four_rooms_holes.txt") as path:
     four_rooms_holes = path
 
+with pkg_resources.path(data, "maze_rooms.txt") as path:
+    maze_rooms = path
+
+
 CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent"}
 
 ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
@@ -383,3 +387,14 @@ class FourRoomsHoles(DiscreteRoomEnvironment):
 
     def __init__(self, movement_penalty=-1, goal_reward=10):
         super().__init__(four_rooms_holes, movement_penalty, goal_reward)
+
+
+class MazeRooms(DiscreteRoomEnvironment):
+    """
+    A maze-style environment made up of a number of inter-connected corridors.
+    Goal Reward: +10
+    Movement Penalty: -1
+    """
+
+    def __init__(self, movement_penalty=-1, goal_reward=10):
+        super().__init__(maze_rooms, movement_penalty, goal_reward)
