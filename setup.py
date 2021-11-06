@@ -26,6 +26,8 @@ setuptools.setup(
                 "barl_envs/envs/discrete_rooms/data/cage_room.txt",
                 "barl_envs/envs/discrete_rooms/data/empty_room.txt",
                 "barl_envs/envs/discrete_rooms/data/small_rooms.txt",
+                "barl_envs/envs/discrete_rooms/data/four_rooms.txt",
+                "barl_envs/envs/discrete_rooms/data/four_rooms_holes.txt",
             ],
         ),
         (

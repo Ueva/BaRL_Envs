@@ -35,6 +35,12 @@ with pkg_resources.path(data, "empty_room.txt") as path:
 with pkg_resources.path(data, "small_rooms.txt") as path:
     small_rooms = path
 
+with pkg_resources.path(data, "four_rooms.txt") as path:
+    four_rooms = path
+
+with pkg_resources.path(data, "four_rooms_holes.txt") as path:
+    four_rooms_holes = path
+
 CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent"}
 
 ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
@@ -355,3 +361,25 @@ class SmallRooms(DiscreteRoomEnvironment):
 
     def __init__(self, movement_penalty=-1, goal_reward=10):
         super().__init__(small_rooms, movement_penalty, goal_reward)
+
+
+class FourRooms(DiscreteRoomEnvironment):
+    """
+    A default four-rooms environment, as commonly seen in the HRL literature.
+    Goal Reward: +10
+    Movement Penalty: -1
+    """
+
+    def __init__(self, movement_penalty=-1, goal_reward=10):
+        super().__init__(four_rooms, movement_penalty, goal_reward)
+
+
+class FourRoomsHoles(DiscreteRoomEnvironment):
+    """
+    A four-room environment, with a number of pillars blocking the way in one of the rooms.
+    Goal Reward: +10
+    Movement Penalty: -1
+    """
+
+    def __init__(self, movement_penalty=-1, goal_reward=10):
+        super().__init__(four_rooms_holes, movement_penalty, goal_reward)
