@@ -23,6 +23,9 @@ with pkg_resources.path(data, "six_rooms.txt") as path:
 with pkg_resources.path(data, "xu_four_rooms.txt") as path:
     xu_four_room = path
 
+with pkg_resources.path(data, "bridge_room.txt") as path:
+    bridge_room = path
+
 CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent"}
 
 ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
@@ -297,3 +300,15 @@ class DiscreteXuFourRooms(DiscreteRoomEnvironment):
 
     def __init__(self, movement_penalty=-1, goal_reward=10):
         super().__init__(xu_four_room, movement_penalty, goal_reward)
+
+
+class BridgeRoom(DiscreteRoomEnvironment):
+    """
+    A single-room environment feating two routes from the starting state
+    to the goal state --- a longer, wider path, and a shorter, thinner path.
+    Goal Reward: +10
+    Movement Penalty: -1
+    """
+
+    def __init__(self, movement_penalty=-1, goal_reward=10):
+        super().__init__(bridge_room, movement_penalty, goal_reward)
