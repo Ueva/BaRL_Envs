@@ -29,6 +29,9 @@ with pkg_resources.path(data, "bridge_room.txt") as path:
 with pkg_resources.path(data, "cage_room.txt") as path:
     cage_room = path
 
+with pkg_resources.path(data, "empty_room.txt") as path:
+    empty_room = path
+
 CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent"}
 
 ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
@@ -326,3 +329,13 @@ class CageRoom(DiscreteRoomEnvironment):
 
     def __init__(self, movement_penalty=-1, goal_reward=10):
         super().__init__(cage_room, movement_penalty, goal_reward)
+
+
+class EmptyRoom(DiscreteRoomEnvironment):
+    """
+    A single, empty room environment.
+    Movement Penalty: -1
+    """
+
+    def __init__(self, movement_penalty=-1, goal_reward=10):
+        super().__init__(empty_room, movement_penalty, goal_reward)
