@@ -5,3 +5,4 @@ from barl_envs.envs.discrete_rooms.rooms import DiscreteXuFourRooms
 from barl_envs.envs.discrete_rooms.rooms import BridgeRoom
 from barl_envs.envs.discrete_rooms.rooms import CageRoom
 from barl_envs.envs.discrete_rooms.rooms import EmptyRoom
+from barl_envs.envs.discrete_rooms.rooms import SmallRooms

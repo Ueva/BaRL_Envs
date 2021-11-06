@@ -32,6 +32,9 @@ with pkg_resources.path(data, "cage_room.txt") as path:
 with pkg_resources.path(data, "empty_room.txt") as path:
     empty_room = path
 
+with pkg_resources.path(data, "small_rooms.txt") as path:
+    small_rooms = path
+
 CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent"}
 
 ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
@@ -334,8 +337,21 @@ class CageRoom(DiscreteRoomEnvironment):
 class EmptyRoom(DiscreteRoomEnvironment):
     """
     A single, empty room environment.
+    Goal Reward: +10
     Movement Penalty: -1
     """
 
     def __init__(self, movement_penalty=-1, goal_reward=10):
         super().__init__(empty_room, movement_penalty, goal_reward)
+
+
+class SmallRooms(DiscreteRoomEnvironment):
+    """
+    A four-room environment comprised of a single large room with
+    three smaller rooms above.
+    Goal Reward: +10
+    Movement Penalty: -1
+    """
+
+    def __init__(self, movement_penalty=-1, goal_reward=10):
+        super().__init__(small_rooms, movement_penalty, goal_reward)
