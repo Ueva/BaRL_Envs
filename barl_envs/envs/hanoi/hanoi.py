@@ -44,6 +44,9 @@ class HanoiEnvironment(BaseEnvironment):
         Resets the environment to an initial state, with all disks stacked
         on the leftmost pole (i.e. pole with index zero).
 
+        Arguments:
+           state (tuple) -- The initial state to use. Defaults to None, in which case an state is chosen according to the environment's initial state distribution.
+
         Returns:
             tuple: Initial environmental state.
         """

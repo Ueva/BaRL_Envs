@@ -98,16 +98,23 @@ class DiscreteRoomEnvironment(BaseEnvironment):
                 elif CELL_TYPES_DICT[self.gridworld[y, x]] == "goal":
                     self.terminal_states.append((y, x))
 
-    def reset(self):
+    def reset(self, state=None):
         """
         Resets the environment, setting the agent's position to a random starting state
         and selecting a random goal state.
+
+        Arguments:
+           state {(int, int)} -- The initial state to use. Defaults to None, in which case an state is chosen according to the environment's initial state distribution.
 
         Returns:
             [(int, int)] -- The agent's initial position.
         """
 
-        self.position = random.choice(self.initial_states)
+        if state is None:
+            self.position = random.choice(self.initial_states)
+        else:
+            self.current_state = copy.deepcopy(state)
+
         self.goal = random.choice(self.terminal_states)
 
         self.current_initial_state = self.position
