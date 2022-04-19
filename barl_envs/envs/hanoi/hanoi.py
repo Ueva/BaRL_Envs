@@ -115,7 +115,7 @@ class HanoiEnvironment(BaseEnvironment):
             self.renderer = None
 
     def get_action_space(self):
-        return copy.deepcopy(self.action_list)
+        return list(range(len(self.action_list)))
 
     def get_available_actions(self, state=None):
         """
