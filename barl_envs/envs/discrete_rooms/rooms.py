@@ -113,7 +113,7 @@ class DiscreteRoomEnvironment(BaseEnvironment):
         if state is None:
             self.position = random.choice(self.initial_states)
         else:
-            self.current_state = copy.deepcopy(state)
+            self.position = copy.deepcopy(state)
 
         self.goal = random.choice(self.terminal_states)
 
