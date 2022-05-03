@@ -299,22 +299,22 @@ class DiscreteRoomEnvironment(BaseEnvironment):
 class DiscreteDefaultTwoRooms(DiscreteRoomEnvironment):
     """
     A default two-rooms environment, as is commonly featured in the HRL literature.
-    Goal Reward: +10
-    Movement Penalty: -1
+    Goal Reward: +1
+    Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-1, goal_reward=10):
+    def __init__(self, movement_penalty=-0.01, goal_reward=1):
         super().__init__(default_two_room, movement_penalty, goal_reward)
 
 
 class DiscreteDefaultSixRooms(DiscreteRoomEnvironment):
     """
     A default six-rooms environment, as is commonly featured in the HRL literature.
-    Goal Reward: +10
-    Movement Penalty: -1
+    Goal Reward: +1
+    Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-1, goal_reward=10):
+    def __init__(self, movement_penalty=-0.01, goal_reward=1):
         super().__init__(default_six_room, movement_penalty, goal_reward)
 
 
@@ -323,11 +323,11 @@ class DiscreteXuFourRooms(DiscreteRoomEnvironment):
     The four-room environment used in Xu X., Yang M. & Li G. 2019
     "Constructing Temporally Extended Actions through Incremental
     Community Detection". Contains four offset rooms.
-    Goal Reward: +10
-    Movement Penalty: -1
+    Goal Reward: +1
+    Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-1, goal_reward=10):
+    def __init__(self, movement_penalty=-0.01, goal_reward=1):
         super().__init__(xu_four_room, movement_penalty, goal_reward)
 
 
@@ -335,33 +335,33 @@ class BridgeRoom(DiscreteRoomEnvironment):
     """
     A single-room environment feating two routes from the starting state
     to the goal state --- a longer, wider path, and a shorter, thinner path.
-    Goal Reward: +10
-    Movement Penalty: -1
+    Goal Reward: +1
+    Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-1, goal_reward=10):
+    def __init__(self, movement_penalty=-0.01, goal_reward=1):
         super().__init__(bridge_room, movement_penalty, goal_reward)
 
 
 class CageRoom(DiscreteRoomEnvironment):
     """
     A single-room environment, with a small "cage" room within the larger room.
-    Goal Reward: +10
-    Movement Penalty: -1
+    Goal Reward: +1
+    Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-1, goal_reward=10):
+    def __init__(self, movement_penalty=-0.01, goal_reward=1):
         super().__init__(cage_room, movement_penalty, goal_reward)
 
 
 class EmptyRoom(DiscreteRoomEnvironment):
     """
     A single, empty room environment.
-    Goal Reward: +10
-    Movement Penalty: -1
+    Goal Reward: +1
+    Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-1, goal_reward=10):
+    def __init__(self, movement_penalty=-0.01, goal_reward=1):
         super().__init__(empty_room, movement_penalty, goal_reward)
 
 
@@ -369,53 +369,53 @@ class SmallRooms(DiscreteRoomEnvironment):
     """
     A four-room environment comprised of a single large room with
     three smaller rooms above.
-    Goal Reward: +10
-    Movement Penalty: -1
+    Goal Reward: +1
+    Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-1, goal_reward=10):
+    def __init__(self, movement_penalty=-0.01, goal_reward=1):
         super().__init__(small_rooms, movement_penalty, goal_reward)
 
 
 class FourRooms(DiscreteRoomEnvironment):
     """
     A default four-rooms environment, as commonly seen in the HRL literature.
-    Goal Reward: +10
-    Movement Penalty: -1
+    Goal Reward: +1
+    Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-1, goal_reward=10):
+    def __init__(self, movement_penalty=-0.01, goal_reward=1):
         super().__init__(four_rooms, movement_penalty, goal_reward)
 
 
 class FourRoomsHoles(DiscreteRoomEnvironment):
     """
     A four-room environment, with a number of pillars blocking the way in one of the rooms.
-    Goal Reward: +10
-    Movement Penalty: -1
+    Goal Reward: +1
+    Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-1, goal_reward=10):
+    def __init__(self, movement_penalty=-0.01, goal_reward=1):
         super().__init__(four_rooms_holes, movement_penalty, goal_reward)
 
 
 class MazeRooms(DiscreteRoomEnvironment):
     """
     A maze-style environment made up of a number of inter-connected corridors.
-    Goal Reward: +10
-    Movement Penalty: -1
+    Goal Reward: +1
+    Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-1, goal_reward=10):
+    def __init__(self, movement_penalty=-0.01, goal_reward=1):
         super().__init__(maze_rooms, movement_penalty, goal_reward)
 
 
 class SpiralRoom(DiscreteRoomEnvironment):
     """
     An environment comprised of a single, spiral-shaped room.
-    Goal Reward: +10
-    Movement Penalty: -1
+    Goal Reward: +1
+    Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-1, goal_reward=10):
+    def __init__(self, movement_penalty=-0.01, goal_reward=1):
         super().__init__(spiral_rooms, movement_penalty, goal_reward)

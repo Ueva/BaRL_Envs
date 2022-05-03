@@ -11,7 +11,7 @@ TAXI_RANKS = [0, 3, 20, 24, -1]
 
 
 class TaxiEnvironment(BaseEnvironment):
-    def __init__(self, movement_penalty=-1.0, goal_reward=20.0, invalid_penalty=-10):
+    def __init__(self, movement_penalty=-0.01, goal_reward=1.0, invalid_penalty=-0.01):
 
         # Define action-space and state-space.
         # self.action_space = gym.spaces.Discrete(6)
@@ -83,7 +83,7 @@ class TaxiEnvironment(BaseEnvironment):
                 self.terminal = True
             # Tries to putdown incorrectly.
             else:
-                reward += -10
+                reward += self.invalid_penalty
 
         taxi_pos = self._coords_to_number(taxi_x, taxi_y)
 

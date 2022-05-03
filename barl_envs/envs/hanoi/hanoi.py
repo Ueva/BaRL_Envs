@@ -91,8 +91,8 @@ class HanoiEnvironment(BaseEnvironment):
         else:
             info["invalid_action"] = True
 
-        # Reward is 10 for reaching the goal state, -1 otherwise.
-        reward = 10 if new_state == self.goal_state else -1
+        # Reward is 1 for reaching the goal state, -0.01 otherwise.
+        reward = 1 if new_state == self.goal_state else -0.01
 
         # Only the goal state is terminal.
         self.done = True if new_state == self.goal_state else False
