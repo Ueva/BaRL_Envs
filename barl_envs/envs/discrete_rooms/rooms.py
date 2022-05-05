@@ -115,10 +115,9 @@ class DiscreteRoomEnvironment(BaseEnvironment):
         else:
             self.position = copy.deepcopy(state)
 
-        self.goal = random.choice(self.terminal_states)
+        self.goals = self.terminal_states
 
         self.current_initial_state = self.position
-        self.current_goal_state = self.goal
 
         self.is_reset = True
 
@@ -218,14 +217,14 @@ class DiscreteRoomEnvironment(BaseEnvironment):
             self.renderer = RoomRenderer(
                 self.gridworld,
                 start_state=self.current_initial_state,
-                goal_state=self.current_goal_state,
+                goal_states=self.terminal_states,
             )
 
         self.renderer.update(
             self.position,
             self.gridworld,
             start_state=self.current_initial_state,
-            goal_state=self.current_goal_state,
+            goal_states=self.terminal_states,
         )
 
     def close(self):

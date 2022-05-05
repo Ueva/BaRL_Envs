@@ -27,26 +27,29 @@ TILESIZE = 16
 
 
 class RoomRenderer(object):
-    def __init__(self, room_layout, start_state=None, goal_state=None):
+    def __init__(self, room_layout, start_state=None, goal_states=None):
 
-        self._update_room_layout(room_layout, start_state, goal_state)
+        self._update_room_layout(room_layout, start_state, goal_states)
 
         # Initialise pygame and display window.
         pygame.init()
         self.display_window = pygame.display.set_mode((self.width * TILESIZE, self.height * TILESIZE))
 
-    def _update_room_layout(self, room_layout, start_state=None, goal_state=None):
+    def _update_room_layout(self, room_layout, start_state=None, goal_states=None):
         self.rooms = room_layout.tolist()
+        for i in range(len(self.rooms)):
+            self.rooms[i] = [FLOOR if cell == START else cell for cell in self.rooms[i]]
+
         self.height = len(room_layout)
         self.width = len(room_layout[0])
 
         self.start_state = start_state
-        self.goal_state = goal_state
+        self.goal_states = goal_states
 
-    def update(self, agent_position, room_layout, start_state=None, goal_state=None):
+    def update(self, agent_position, room_layout, start_state=None, goal_states=None):
         pygame.event.get()
 
-        self._update_room_layout(room_layout, start_state, goal_state)
+        self._update_room_layout(room_layout, start_state, goal_states)
 
         # Make a copy of the 'clean' room layout we can restore from later.
         backup = deepcopy(self.rooms)
@@ -58,9 +61,9 @@ class RoomRenderer(object):
             current_rooms[i][j] = START
 
         # Designate the goal tile.
-        if self.goal_state is not None:
-            i, j = self.goal_state
-            current_rooms[i][j] = GOAL
+        if self.goal_states is not None:
+            for (i, j) in self.goal_states:
+                current_rooms[i][j] = GOAL
 
         # Designate the agent's current tile.
         i, j = agent_position
