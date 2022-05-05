@@ -11,7 +11,7 @@ TAXI_RANKS = [0, 3, 20, 24, -1]
 
 
 class TaxiEnvironment(BaseEnvironment):
-    def __init__(self, movement_penalty=-0.01, goal_reward=1.0, invalid_penalty=-0.01):
+    def __init__(self, movement_penalty=-0.001, goal_reward=1.0, invalid_penalty=-0.001):
 
         # Define action-space and state-space.
         # self.action_space = gym.spaces.Discrete(6)

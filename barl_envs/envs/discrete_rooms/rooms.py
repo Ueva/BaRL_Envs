@@ -58,7 +58,7 @@ class DiscreteRoomEnvironment(BaseEnvironment):
     Class representing a discrete "rooms-like" gridworld, as is commonly seen in the HRL literature.
     """
 
-    def __init__(self, room_template_file_path, movement_penalty=-1.0, goal_reward=10.0, options=[]):
+    def __init__(self, room_template_file_path, movement_penalty=-0.001, goal_reward=1.0, options=[]):
         """
         Initialises a new DiscreteRoomEnvironment object.
 
@@ -303,7 +303,7 @@ class DiscreteDefaultTwoRooms(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.01, goal_reward=1):
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(default_two_room, movement_penalty, goal_reward)
 
 
@@ -314,7 +314,7 @@ class DiscreteDefaultSixRooms(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.01, goal_reward=1):
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(default_six_room, movement_penalty, goal_reward)
 
 
@@ -327,7 +327,7 @@ class DiscreteXuFourRooms(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.01, goal_reward=1):
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(xu_four_room, movement_penalty, goal_reward)
 
 
@@ -339,7 +339,7 @@ class BridgeRoom(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.01, goal_reward=1):
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(bridge_room, movement_penalty, goal_reward)
 
 
@@ -350,7 +350,7 @@ class CageRoom(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.01, goal_reward=1):
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(cage_room, movement_penalty, goal_reward)
 
 
@@ -361,7 +361,7 @@ class EmptyRoom(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.01, goal_reward=1):
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(empty_room, movement_penalty, goal_reward)
 
 
@@ -373,7 +373,7 @@ class SmallRooms(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.01, goal_reward=1):
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(small_rooms, movement_penalty, goal_reward)
 
 
@@ -384,7 +384,7 @@ class FourRooms(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.01, goal_reward=1):
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(four_rooms, movement_penalty, goal_reward)
 
 
@@ -395,7 +395,7 @@ class FourRoomsHoles(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.01, goal_reward=1):
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(four_rooms_holes, movement_penalty, goal_reward)
 
 
@@ -406,7 +406,7 @@ class MazeRooms(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.01, goal_reward=1):
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(maze_rooms, movement_penalty, goal_reward)
 
 
@@ -417,5 +417,5 @@ class SpiralRoom(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.01, goal_reward=1):
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(spiral_rooms, movement_penalty, goal_reward)
