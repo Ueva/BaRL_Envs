@@ -79,7 +79,7 @@ class HanoiEnvironment(BaseEnvironment):
         # Initialise transition info.
         info = {"invalid_action": False}
 
-        new_state = list(copy.deepcopy(self.current_state))
+        new_state = list(self.current_state)
         source_pole, dest_pole = self.action_list[action]
 
         # If the chosen action is legal, determine the next state.
@@ -100,7 +100,7 @@ class HanoiEnvironment(BaseEnvironment):
         # Update current state.
         self.current_state = new_state
 
-        return copy.deepcopy(self.current_state), reward, self.done, info
+        return self.current_state, reward, self.done, info
 
     def render(self, mode="human"):
         pass
