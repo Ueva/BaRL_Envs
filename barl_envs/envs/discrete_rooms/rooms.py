@@ -47,6 +47,9 @@ with pkg_resources.path(data, "maze_rooms.txt") as path:
 with pkg_resources.path(data, "spiral_room.txt") as path:
     spiral_rooms = path
 
+with pkg_resources.path(data, "parr_maze.txt") as path:
+    parr_maze = path
+
 
 CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent"}
 
@@ -180,7 +183,7 @@ class DiscreteRoomEnvironment(BaseEnvironment):
             [list(int)] -- The list of actions available in the given state.
         """
         if state is None:
-            state = copy.deepcopy(self.position)
+            state = self.position
 
         if self.is_state_terminal(state):
             return []
@@ -201,7 +204,7 @@ class DiscreteRoomEnvironment(BaseEnvironment):
             [list(bool)] -- A boolean mask indicating action availability in the current state.
         """
         if state is None:
-            state = copy.deepcopy(self.position)
+            state = self.position
 
         if self.is_state_terminal(state):
             return [False for i in range(4)]
@@ -246,7 +249,7 @@ class DiscreteRoomEnvironment(BaseEnvironment):
             bool: Whether or not the given state is terminal.
         """
         if state is None:
-            state = copy.deepcopy(self.position)
+            state = self.position
 
         return CELL_TYPES_DICT[self.gridworld[state[0]][state[1]]] == "goal"
 
@@ -418,3 +421,15 @@ class SpiralRoom(DiscreteRoomEnvironment):
 
     def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(spiral_rooms, movement_penalty, goal_reward)
+
+
+class ParrMaze(DiscreteRoomEnvironment):
+    """
+    The Maze gridworld introduced by Parr and Russell, 1998, to test HAMs.
+    Contains ~r600 states.
+    Goal Reward: +1
+    Movement Penalty: -0.01
+    """
+
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
+        super().__init__(parr_maze, movement_penalty, goal_reward)

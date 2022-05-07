@@ -23,7 +23,7 @@ AGENT = "A"
 
 colours = {FLOOR: WHITE, WALL: BLACK, AGENT: BLUE, START: RED, GOAL: GREEN}
 
-TILESIZE = 16
+TILESIZE = 8
 
 
 class RoomRenderer(object):
