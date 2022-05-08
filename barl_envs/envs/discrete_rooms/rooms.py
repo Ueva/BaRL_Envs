@@ -50,6 +50,8 @@ with pkg_resources.path(data, "spiral_room.txt") as path:
 with pkg_resources.path(data, "parr_maze.txt") as path:
     parr_maze = path
 
+with pkg_resources.path(data, "parr_mini_maze.txt") as path:
+    parr_mini_maze = path
 
 CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent"}
 
@@ -426,10 +428,22 @@ class SpiralRoom(DiscreteRoomEnvironment):
 class ParrMaze(DiscreteRoomEnvironment):
     """
     The Maze gridworld introduced by Parr and Russell, 1998, to test HAMs.
-    Contains ~r600 states.
+    Contains ~3600 states.
     Goal Reward: +1
     Movement Penalty: -0.01
     """
 
     def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(parr_maze, movement_penalty, goal_reward)
+
+
+class ParrMiniMaze(DiscreteRoomEnvironment):
+    """
+    A smaller section of the Maze gridworld introduced by Parr and Russell, 1998, to test HAMs.
+    Contains ~1800 states.
+    Goal Reward: +1
+    Movement Penalty: -0.01
+    """
+
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
+        super().__init__(parr_mini_maze, movement_penalty, goal_reward)

@@ -31,6 +31,7 @@ setuptools.setup(
                 "barl_envs/envs/discrete_rooms/data/maze_rooms.txt",
                 "barl_envs/envs/discrete_rooms/data/spiral_room.txt",
                 "barl_envs/envs/discrete_rooms/data/parr_maze.txt",
+                "barl_envs/envs/discrete_rooms/data/parr_mini_maze.txt",
             ],
         ),
         (

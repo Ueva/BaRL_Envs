@@ -11,3 +11,4 @@ from barl_envs.envs.discrete_rooms.rooms import FourRoomsHoles
 from barl_envs.envs.discrete_rooms.rooms import MazeRooms
 from barl_envs.envs.discrete_rooms.rooms import SpiralRoom
 from barl_envs.envs.discrete_rooms.rooms import ParrMaze
+from barl_envs.envs.discrete_rooms.rooms import ParrMiniMaze
