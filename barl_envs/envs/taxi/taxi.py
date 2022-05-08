@@ -1,21 +1,23 @@
 import copy
 import random
 
+from itertools import cycle
+
 from barl_simpleoptions.environment import BaseEnvironment
 
 from barl_envs.renderers import TaxiRenderer
 
 
 ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT", 4: "PICKUP", 5: "PUTDOWN"}
-TAXI_RANKS = [0, 3, 20, 24, -1]
+TAXI_RANKS = [0, 3, 20, 24, -1]  # -1 means that the passenger is inside the Taxi.
 
 
 class TaxiEnvironment(BaseEnvironment):
-    def __init__(self, movement_penalty=-0.001, goal_reward=1.0, invalid_penalty=-0.001):
+    def __init__(
+        self, movement_penalty=-0.001, goal_reward=1.0, invalid_penalty=-0.001, options=[], initial_states_order=None
+    ):
 
-        # Define action-space and state-space.
-        # self.action_space = gym.spaces.Discrete(6)
-        # self.state_space = gym.spaces.Tuple((gym.spaces.Discrete(25), gym.spaces.Discrete(5), gym.spaces.Discrete(4)))
+        super().__init__(options)
 
         self.movement_penalty = movement_penalty
         self.goal_reward = goal_reward
@@ -28,13 +30,21 @@ class TaxiEnvironment(BaseEnvironment):
 
         self.renderer = None
 
-    def reset(self, state=None):
-        # If no state is specified, randomly sample an initial state.
-        if state is None:
-            self.current_state = copy.deepcopy(random.sample(self.get_initial_states(), 1)[0])
-        # Else use the specified state as the initial state.
+        if initial_states_order is None:
+            self.initial_states_order = None
         else:
+            self.initial_states_order = cycle(initial_states_order)
+
+    def reset(self, state=None):
+        # If an initial state is specified, use it.
+        if state is not None:
             self.current_state = copy.deepcopy(state)
+        # Else, if we have a defined initial state order, use the next initial state.
+        elif self.initial_states_order is not None:
+            self.current_state = copy.deepcopy(next(self.initial_states_order))
+        # Else, randomly sample an initial state.
+        else:
+            self.current_state = copy.deepcopy(random.sample(self.get_initial_states(), 1)[0])
 
         self.terminal = False
         return self.current_state
@@ -183,10 +193,11 @@ class TaxiEnvironment(BaseEnvironment):
         for start_square in range(25):
             for source_square in range(4):
                 for destination_square in range(4):
-                    initial_states.append((start_square, source_square, destination_square))
+                    if source_square != destination_square:
+                        initial_states.append((start_square, source_square, destination_square))
 
         # Only return initial states where the passenger does not start on its destination square.
-        return [(start, source, dest) for (start, source, dest) in initial_states if source != dest]
+        return initial_states
 
     def get_successors(self, state=None):
         """
