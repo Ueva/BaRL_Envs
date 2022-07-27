@@ -177,13 +177,14 @@ class HanoiEnvironment(BaseEnvironment):
         """
         return [self.num_disks * (0,)]
 
-    def get_successors(self, state=None):
+    def get_successors(self, state=None, actions=None):
         """
         Returns a list of states which can be reached by taking an action in the given state.
         If no state is specified, a list of successor states for the current state will be returned.
 
         Args:
             state (tuple, optional): The state to return successors for. Defaults to None (i.e. current state).
+            actions (List[Hashable], optional): The actions to test in the given state when searching for successors. Defaults to None (i.e. tests all available actions).
 
         Returns:
             list[tuple]: A list of states reachable by taking an action in the given state.
@@ -192,12 +193,13 @@ class HanoiEnvironment(BaseEnvironment):
             state = self.current_state
 
         new_state = state
-        legal_actions = self.get_available_actions(state=new_state)
+        if actions is None:
+            actions = self.get_available_actions(state=new_state)
 
         # Creates a list of all states which can be reached by
         # taking the legal actions available in the given state.
         successor_states = []
-        for action in legal_actions:
+        for action in actions:
             successor_state = list(copy.deepcopy(state))
             source_pole, dest_pole = self.action_list[action]
             disk_to_move = min(self._disks_on_pole(source_pole, state=new_state))

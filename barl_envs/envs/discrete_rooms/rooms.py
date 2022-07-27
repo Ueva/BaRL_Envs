@@ -264,13 +264,14 @@ class DiscreteRoomEnvironment(BaseEnvironment):
         """
         return copy.deepcopy(self.initial_states)
 
-    def get_successors(self, state=None):
+    def get_successors(self, state=None, actions=None):
         """
         Returns a list of states which can be reached by taking an action in the given state.
         If no state is specified, a list of successor states for the current state will be returned.
 
         Args:
             state (tuple, optional): The state to return successors for. Defaults to None (i.e. current state).
+            actions (List[Hashable], optional): The actions to test in the given state when searching for successors. Defaults to None (i.e. tests all available actions).
 
         Returns:
             list[tuple]: A list of states reachable by taking an action in the given state.
@@ -278,10 +279,11 @@ class DiscreteRoomEnvironment(BaseEnvironment):
         if state is None:
             state = self.position
 
-        legal_actions = self.get_available_actions(state=state)
+        if actions is None:
+            actions = self.get_available_actions(state=state)
 
         successor_states = []
-        for action in legal_actions:
+        for action in actions:
             next_state = copy.deepcopy(state)
             if ACTIONS_DICT[action] == "DOWN":
                 next_state = (state[0] + 1, state[1])

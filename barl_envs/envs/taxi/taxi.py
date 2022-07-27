@@ -199,13 +199,15 @@ class TaxiEnvironment(BaseEnvironment):
         # Only return initial states where the passenger does not start on its destination square.
         return initial_states
 
-    def get_successors(self, state=None):
+    def get_successors(self, state=None, actions=None):
         """
         Returns a list of states which can be reached by taking an action in the given state.
         If no state is specified, a list of successor states for the current state will be returned.
 
         Args:
             state (tuple, optional): The state to return successors for. Defaults to None (i.e. current state).
+            actions (List[Hashable], optional): The actions to test in the given state when searching for successors. Defaults to None (i.e. tests all available actions).
+
 
         Returns:
             list[tuple]: A list of states reachable by taking an action in the given state.
@@ -213,12 +215,13 @@ class TaxiEnvironment(BaseEnvironment):
         if state is None:
             state = self.current_state
 
-        legal_actions = self.get_available_actions(state=state)
+        if actions is None:
+            actions = self.get_available_actions(state=state)
 
         # Creates a list of all states which can be reached by
         # taking the legal actions available in the given state.
         successor_states = []
-        for action in legal_actions:
+        for action in actions:
 
             right_wall = [0, 5, 16, 21, 2, 7, 4, 9, 14, 19, 24]
             left_wall = [0, 5, 10, 15, 20, 1, 6, 17, 22, 3, 8]
