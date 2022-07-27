@@ -21,6 +21,7 @@ setuptools.setup(
             [
                 "barl_envs/envs/discrete_rooms/data/two_rooms.txt",
                 "barl_envs/envs/discrete_rooms/data/six_rooms.txt",
+                "barl_envs/envs/discrete_rooms/data/nine_rooms.txt",
                 "barl_envs/envs/discrete_rooms/data/xu_four_rooms.txt",
                 "barl_envs/envs/discrete_rooms/data/bridge_room.txt",
                 "barl_envs/envs/discrete_rooms/data/cage_room.txt",
@@ -39,7 +40,7 @@ setuptools.setup(
             ["barl_envs/envs/grid_pacman/data/four_room.txt"],
         ),
     ],
-    install_requires=["numpy", "networkx", "pygame"],
+    install_requires=["importlib_resources", "importlib_metadata", "numpy", "networkx", "pygame"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

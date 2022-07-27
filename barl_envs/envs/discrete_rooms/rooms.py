@@ -20,6 +20,9 @@ with pkg_resources.path(data, "two_rooms.txt") as path:
 with pkg_resources.path(data, "six_rooms.txt") as path:
     default_six_room = path
 
+with pkg_resources.path(data, "nine_rooms.txt") as path:
+    default_nine_room = path
+
 with pkg_resources.path(data, "xu_four_rooms.txt") as path:
     xu_four_room = path
 
@@ -322,6 +325,17 @@ class DiscreteDefaultSixRooms(DiscreteRoomEnvironment):
 
     def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(default_six_room, movement_penalty, goal_reward)
+
+
+class DiscreteDefaultNineRooms(DiscreteRoomEnvironment):
+    """
+    A default nine-rooms environment, as is commonly featured in the HRL literature.
+    Goal Reward: +1
+    Movement Penalty: -0.001
+    """
+
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
+        super().__init__(default_nine_room, movement_penalty, goal_reward)
 
 
 class DiscreteXuFourRooms(DiscreteRoomEnvironment):
