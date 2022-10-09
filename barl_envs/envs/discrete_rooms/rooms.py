@@ -161,7 +161,7 @@ class DiscreteRoomEnvironment(BaseEnvironment):
         # Determines whether the next state is legal and/or terminal.
         if CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]] == "wall":
             next_state = current_state
-        elif CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]] == "goal":
+        elif self.is_state_terminal(state=(next_state[0], next_state[1])):
             reward += self.goal_reward
             terminal = True
 
@@ -225,14 +225,14 @@ class DiscreteRoomEnvironment(BaseEnvironment):
             self.renderer = RoomRenderer(
                 self.gridworld,
                 start_state=self.current_initial_state,
-                goal_states=self.terminal_states,
+                goal_states=self.goals,
             )
 
         self.renderer.update(
             self.position,
             self.gridworld,
             start_state=self.current_initial_state,
-            goal_states=self.terminal_states,
+            goal_states=self.goals,
         )
 
     def close(self):
@@ -256,7 +256,8 @@ class DiscreteRoomEnvironment(BaseEnvironment):
         if state is None:
             state = self.position
 
-        return CELL_TYPES_DICT[self.gridworld[state[0]][state[1]]] == "goal"
+        # return CELL_TYPES_DICT[self.gridworld[state[0]][state[1]]] == "goal"
+        return state in self.goals
 
     def get_initial_states(self):
         """
