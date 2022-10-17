@@ -1,10 +1,10 @@
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # S S S S S S S # S S S S S S S # S S S S S S S #
-# S G S S S S S # S S S S S S S # S S S S S S S #
 # S S S S S S S # S S S S S S S # S S S S S S S #
-# S S S S S S S S S S S S S S S S S S S S S S S #
 # S S S S S S S # S S S S S S S # S S S S S S S #
-# S S S S S S S # S S S S S S S # S G S S S S S #
+# S S S S S S S S S S S S S S S S S S S G S S S #
+# S S S S S S S # S S S S S S S # S S S S S S S #
+# S S S S S S S # S S S S S S S # S S S S S S S #
 # S S S S S S S # S S S S S S S # S S S S S S S #
 # # # # S # # # # # # # S # # # # # # # S # # # #
 # S S S S S S S # S S S S S S S # S S S S S S S #
@@ -19,7 +19,7 @@
 # S S S S S S S # S S S S S S S # S S S S S S S #
 # S S S S S S S # S S S S S S S # S S S S S S S #
 # S S S G S S S S S S S S S S S S S S S S S S S #
+# S S S S S S S # S S S S S S S # S S S S G S S #
 # S S S S S S S # S S S S S S S # S S S S S S S #
-# S S S S S S S # S S S S S S S # S S S S S G S #
 # S S S S S S S # S S S S S S S # S S S S S S S #
 # # # # # # # # # # # # # # # # # # # # # # # # #
