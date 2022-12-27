@@ -45,7 +45,7 @@ INDEX_TO_ACTION = {
 
 
 class PlayroomEnvironment(BaseEnvironment):
-    def __init__(self, options=[], initial_states_order=None):
+    def __init__(self, options=[], initial_states_order=None, seed=None):
         super().__init__(options)
 
         if initial_states_order is None:
@@ -53,13 +53,16 @@ class PlayroomEnvironment(BaseEnvironment):
         else:
             self.initial_states_order = cycle(initial_states_order)
 
+        if seed is not None:
+            self.seed(seed)
+
     def reset(self, state=None):
         # If an initial state is specified, use it.
         if state is not None:
             self.current_state = copy.deepcopy(state)
         # Else, if we have a defined initial state order, use the next initial state.
         elif self.initial_states_order is not None:
-            self.current_state = copy.deepcopy(next(self.initial_states_order))
+            self.current_state = next(self.initial_states_order)
         # Else, randomly sample an initial state.
         else:
             initial_eye_item = random.randint(0, 3)
@@ -339,3 +342,7 @@ class PlayroomEnvironment(BaseEnvironment):
                     stg.add_edge(u, v, weight=w)
 
             return stg
+
+    def seed(self, seed):
+        random.seed(seed)
+        np.random.seed(seed)
