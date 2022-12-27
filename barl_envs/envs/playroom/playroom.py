@@ -5,6 +5,8 @@ import itertools
 import numpy as np
 import networkx as nx
 
+from itertools import cycle
+
 from barl_simpleoptions import BaseEnvironment
 
 ITEM_TO_INDEX = {
@@ -43,20 +45,32 @@ INDEX_TO_ACTION = {
 
 
 class PlayroomEnvironment(BaseEnvironment):
-    def __init__(self, options=[]):
+    def __init__(self, options=[], initial_states_order=None):
         super().__init__(options)
 
+        if initial_states_order is None:
+            self.initial_states_order = None
+        else:
+            self.initial_states_order = cycle(initial_states_order)
+
     def reset(self, state=None):
-        initial_eye_item = random.randint(0, 3)
-        initial_hand_item = random.randint(0, 3)
-        initial_marker_item = random.randint(0, 3)
+        # If an initial state is specified, use it.
+        if state is not None:
+            self.current_state = copy.deepcopy(state)
+        # Else, if we have a defined initial state order, use the next initial state.
+        elif self.initial_states_order is not None:
+            self.current_state = copy.deepcopy(next(self.initial_states_order))
+        # Else, randomly sample an initial state.
+        else:
+            initial_eye_item = random.randint(0, 3)
+            initial_hand_item = random.randint(0, 3)
+            initial_marker_item = random.randint(0, 3)
+            self.current_state = (initial_eye_item, initial_hand_item, initial_marker_item, False, False, False)
 
-        self.current_state = (initial_eye_item, initial_hand_item, initial_marker_item, False, False, False)
-
-        return (initial_eye_item, initial_hand_item, initial_marker_item, False, False, False)
+        return copy.deepcopy(self.current_state)
 
     def step(self, action):
-        print(INDEX_TO_ACTION[action])
+        # print(INDEX_TO_ACTION[action])
         eye_item, hand_item, marker_item, light, music, bell = self.current_state
 
         # If bell is currently ringing, stop it.
