@@ -81,33 +81,39 @@ class PlayroomEnvironment(BaseEnvironment):
             eye_item = random.randint(0, 3)
         # 1 - Move Hand to Eye.
         elif INDEX_TO_ACTION[action] == "HAND_TO_EYE":
-            hand_item = eye_item
+            if random.random() <= 0.75:
+                hand_item = eye_item
         # 2 - Move Marker to Eye,
         elif INDEX_TO_ACTION[action] == "MARKER_TO_EYE":
-            marker_item = eye_item
+            if random.random() <= 0.75:
+                marker_item = eye_item
         # 3 -  Move Eye to Hand.
         elif INDEX_TO_ACTION[action] == "EYE_TO_HAND":
             eye_item = hand_item
         # 4 -  Move Eye to Marker.
         elif INDEX_TO_ACTION[action] == "EYE_TO_MARKER":
-            eye_item = marker_item
+            if random.random() <= 0.75:
+                eye_item = marker_item
         # 5 - Interact with Item.
         elif INDEX_TO_ACTION[action] == "INTERACT":
             # If Eye and Hand are on Light Switch, toggle Light.
             if INDEX_TO_ITEM[eye_item] == "LIGHT_SWITCH" and INDEX_TO_ITEM[hand_item] == "LIGHT_SWITCH":
-                light = not light
+                if random.random() <= 0.75:
+                    light = not light
             # If Eye and Hand are on Music Switch...
             elif INDEX_TO_ITEM[eye_item] == "MUSIC_SWITCH" and INDEX_TO_ITEM[hand_item] == "MUSIC_SWITCH":
                 # ...and the Light is On, toggle Music.
                 if light:
-                    music = not music
+                    if random.random() <= 0.75:
+                        music = not music
                 # Otherwise, the Music Switch does nothing.
             # If the Eye and Hand are on the Ball, kick the ball at the Marker.
             # If the Marker is currently on the Bell, ring the Bell.
             elif INDEX_TO_ITEM[eye_item] == "BALL" and INDEX_TO_ITEM[hand_item] == "BALL":
-                if INDEX_TO_ITEM[marker_item] == "BELL":
-                    bell = True
-                marker_item = ITEM_TO_INDEX["BALL"]
+                if random.random() <= 0.75:
+                    if INDEX_TO_ITEM[marker_item] == "BELL":
+                        bell = True
+                    marker_item = ITEM_TO_INDEX["BALL"]
 
         # If the Music is on and the Bell is ringing, the Monkey starts screaming, and the episode ends.
         if music and bell:
