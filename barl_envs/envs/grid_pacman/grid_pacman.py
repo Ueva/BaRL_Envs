@@ -26,7 +26,8 @@ ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
 
 
 class GridPacManEnvironment(BaseEnvironment):
-    def __init__(self, pacman_template_file, movement_penalty=-1.0, goal_reward=10.0, caught_penalty=-20.0):
+    def __init__(self, pacman_template_file, movement_penalty=-1.0, goal_reward=10.0, caught_penalty=-20.0, options=[]):
+        super().__init__(options)
 
         # Initialise environment variables.
         self._initialise_pacman(pacman_template_file)
@@ -37,26 +38,25 @@ class GridPacManEnvironment(BaseEnvironment):
         self.ghost_positions = [[0, 0]] * self.num_ghosts
         self.position = (0, 0)
 
-        # Define action-space and state-space shapes.
-        # env_shape = gym.spaces.Discrete(self.gridworld.shape[0]), gym.spaces.Discrete(self.gridworld.shape[1])
-        # self.action_space = gym.spaces.Discrete(4)
-        # self.state_space = gym.spaces.Tuple(env_shape + env_shape * self.num_ghosts)
-
         self.terminal = True
         self.renderer = None
 
-    def reset(self):
-        self.ghost_positions = copy.deepcopy(self.ghost_starts)
-        self.position = random.choice(self.initial_states)
-        self.goal_position = random.choice(self.goal_states)
+    def reset(self, state=None):
 
-        self.current_initial_state = self.position
-        self.current_goal_state = self.goal_position
+        if state is not None:
+            return copy.deepcopy(state)
+        else:
+            self.ghost_positions = copy.deepcopy(self.ghost_starts)
+            self.position = random.choice(self.initial_states)
+            self.goal_position = random.choice(self.goal_states)
 
-        # Build the state tuple.
-        state = self.position
-        for ghost_position in self.ghost_positions:
-            state = state + tuple(ghost_position)
+            self.current_initial_state = self.position
+            self.current_goal_state = self.goal_position
+
+            # Build the state tuple.
+            state = self.position
+            for ghost_position in self.ghost_positions:
+                state = state + tuple(ghost_position)
 
         self.terminal = False
 
@@ -65,12 +65,10 @@ class GridPacManEnvironment(BaseEnvironment):
     def step(self, action):
 
         current_position = copy.deepcopy(self.position)
-        next_position = copy.deepcopy(self.position)
-        current_ghost_positions = copy.deepcopy(self.ghost_positions)
-        next_ghost_positions = copy.deepcopy(self.ghost_positions)
 
         # Move agent.
         reward = self.movement_penalty
+        next_position = copy.deepcopy(self.position)
         if ACTIONS_DICT[action] == "DOWN":
             next_position = (next_position[0] + 1, next_position[1])
         elif ACTIONS_DICT[action] == "UP":
@@ -86,31 +84,28 @@ class GridPacManEnvironment(BaseEnvironment):
 
         self.position = next_position
 
+        # Process ghost movement.
+        next_ghost_positions = copy.deepcopy(self.ghost_positions)
+        for i in range(self.num_ghosts):
+            # Only move a ghost if it has not already caught the player.
+            if next_ghost_positions[i] != next_position:
+                # Find shortest path from ghost position to agent position.
+                ghost_position = next_ghost_positions[i]
+                shortest_path = random.choice(
+                    list(nx.all_shortest_paths(self.level_graph, source=tuple(ghost_position), target=next_position))
+                )
+
+                # Move ghost along path.
+                if len(shortest_path) > 1:
+                    ghost_next_step = shortest_path[1]
+                    next_ghost_positions[i] = [ghost_next_step[0], ghost_next_step[1]]
+
         # If the agent has reached the goal.
         if next_position == self.goal_position:
             reward += self.goal_reward
             self.terminal = True
-
-            # Build the state tuple.
-            state = next_position
-            for ghost_position in current_ghost_positions:
-                state = state + tuple(ghost_position)
-
-            return state, reward, self.terminal, {}
-
-        # Move ghosts.
-        for i in range(self.num_ghosts):
-            # Find shortest path from ghost position to agent position.
-            ghost_position = current_ghost_positions[i]
-            shortest_path = nx.shortest_path(self.level_graph, source=tuple(ghost_position), target=next_position)
-
-            # Move ghost along path.
-            if len(shortest_path) > 1:
-                ghost_next_step = shortest_path[1]
-                next_ghost_positions[i] = [ghost_next_step[0], ghost_next_step[1]]
-
         # If a ghost has caught the agent.
-        if any([next_position == tuple(ghost_position) for ghost_position in next_ghost_positions]):
+        elif any([next_position == tuple(ghost_position) for ghost_position in next_ghost_positions]):
             self.terminal = True
             reward += self.caught_penalty
 
@@ -220,20 +215,23 @@ class GridPacManEnvironment(BaseEnvironment):
 
         return initial_states
 
-    def get_successors(self, state=None):
+    def get_successors(self, state=None, actions=None):
         if state is None:
-            position = self.position
+            state = self.position
             ghost_positions = self.ghost_positions
+            for ghost_position in next_ghost_positions:
+                state = state + tuple(ghost_position)
         else:
             position = (state[0], state[1])
             ghost_positions = [state[i : i + 2] for i in range(2, len(state), 2)]
 
-        legal_actions = self.get_available_actions(state=state)
+        if actions is None:
+            actions = self.get_available_actions(state=state)
 
         successor_states = []
-        for action in legal_actions:
+        for action in actions:
             # Move agent.
-            next_position = copy.deepcopy(position)
+            next_position = position
             if ACTIONS_DICT[action] == "DOWN":
                 next_position = (position[0] + 1, position[1])
             elif ACTIONS_DICT[action] == "UP":
@@ -245,30 +243,31 @@ class GridPacManEnvironment(BaseEnvironment):
 
             # No movement if agent has moved into a wall.
             if CELL_TYPES_DICT[self.gridworld[next_position[0]][next_position[1]]] == "wall":
-                next_position = copy.deepcopy(position)
+                next_position = position
 
-            # If the agent has not reached the goal, process ghost movement.
+            # Process ghost movement.
+            # TODO: THIS WILL NEED CHANGING FOR MORE THAN ONE GHOST,
+            # BUT WILL BE FINE FOR NOW WHILE WE'RE USING ONE.
             next_ghost_positions = copy.deepcopy(ghost_positions)
+            for i in range(self.num_ghosts):
 
-            if not position == self.goal_position:
-                for i in range(self.num_ghosts):
-                    # Find shortest path from ghost position to agent position.
-                    ghost_position = ghost_positions[i]
-                    shortest_path = nx.shortest_path(
-                        self.level_graph, source=tuple(ghost_position), target=next_position
-                    )
+                # Find shortest path from ghost position to agent position.
+                ghost_position = ghost_positions[i]
 
+                # The ghost takes one step along one of the shortest paths to the agent.
+                for shortest_path in list(
+                    nx.all_shortest_paths(self.level_graph, source=tuple(ghost_position), target=next_position)
+                ):
                     # Move ghost along path.
                     if len(shortest_path) > 1:
                         ghost_next_step = shortest_path[1]
                         next_ghost_positions[i] = [ghost_next_step[0], ghost_next_step[1]]
 
-            # Build the state tuple.
-            next_state = next_position
-            for ghost_position in next_ghost_positions:
-                next_state = next_state + tuple(ghost_position)
-
-            successor_states.append(next_state)
+                    # Build the state tuples.
+                    next_state = next_position
+                    for ghost_position in next_ghost_positions:
+                        next_state = next_state + tuple(ghost_position)
+                        successor_states.append(next_state)
 
         return successor_states
 
@@ -328,8 +327,9 @@ class GridPacManEnvironment(BaseEnvironment):
 
 
 class PacManFourRoom(GridPacManEnvironment):
-    def __init__(self, movement_penalty=-1.0, goal_reward=10.0, caught_penalty=-20.0):
+    def __init__(self, movement_penalty=-0.001, goal_reward=1.0, caught_penalty=-1.0):
         super().__init__(four_room_layout, movement_penalty, goal_reward, caught_penalty)
+
 
 # class PacManClassic(GridPacManEnvironment):
 #    pass
