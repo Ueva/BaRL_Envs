@@ -11,7 +11,7 @@ class HanoiEnvironment(BaseEnvironment):
 
     metadata = {"render.modes": ["human"]}
 
-    def __init__(self, num_disks=3, num_poles=3, options=[]):
+    def __init__(self, num_disks=3, num_poles=3, options=[], start_state=None, goal_state=None):
         """
         Instantiates a new HanoiEnvironment object with a specified number
         of disks and poles.
@@ -32,9 +32,21 @@ class HanoiEnvironment(BaseEnvironment):
         # Initialise action mappings.
         self.action_list = list(itertools.permutations(list(range(self.num_poles)), 2))
 
+        # Set start state.
+        if start_state is not None:
+            assert len(start_state) == self.num_disks
+        else:
+            self.start_state = self.num_disks * (0,)
+
+        # Set goal state.
+        if goal_state is not None:
+            assert len(goal_state) == self.num_disks
+            self.goal_state = goal_state
+        else:
+            self.goal_state = self.num_disks * (self.num_poles - 1,)
+
         # Initialise environment state variables.
         self.current_state = None
-        self.goal_state = self.num_disks * (self.num_poles - 1,)
         self.terminal = True
 
         self.renderer = None
@@ -52,7 +64,7 @@ class HanoiEnvironment(BaseEnvironment):
         """
 
         if state is None:
-            self.current_state = self.num_disks * (0,)
+            self.current_state = copy.deepcopy(self.start_state)
         else:
             self.current_state = copy.deepcopy(state)
 
@@ -175,7 +187,7 @@ class HanoiEnvironment(BaseEnvironment):
         Returns:
             List[Tuple[int]]: The initial state(s) in this environment.
         """
-        return [self.num_disks * (0,)]
+        return [self.start_state]
 
     def get_successors(self, state=None, actions=None):
         """
