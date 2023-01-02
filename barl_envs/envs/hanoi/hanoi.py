@@ -35,6 +35,7 @@ class HanoiEnvironment(BaseEnvironment):
         # Set start state.
         if start_state is not None:
             assert len(start_state) == self.num_disks
+            self.start_state = start_state
         else:
             self.start_state = self.num_disks * (0,)
 
