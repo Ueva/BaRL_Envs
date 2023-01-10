@@ -86,7 +86,7 @@ class PlayroomEnvironment(BaseEnvironment):
         elif INDEX_TO_ACTION[action] == "HAND_TO_EYE":
             if random.random() <= 0.75:
                 hand_item = eye_item
-        # 2 - Move Marker to Eye,
+        # 2 - Move Marker to Eye.
         elif INDEX_TO_ACTION[action] == "MARKER_TO_EYE":
             if random.random() <= 0.75:
                 marker_item = eye_item

@@ -56,6 +56,9 @@ with pkg_resources.path(data, "parr_maze.txt") as path:
 with pkg_resources.path(data, "parr_mini_maze.txt") as path:
     parr_mini_maze = path
 
+with pkg_resources.path(data, "ramesh_maze.txt") as path:
+    ramesh_maze = path
+
 CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent"}
 
 ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
@@ -464,3 +467,14 @@ class ParrMiniMaze(DiscreteRoomEnvironment):
 
     def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(parr_mini_maze, movement_penalty, goal_reward)
+
+
+class RameshMaze(DiscreteRoomEnvironment):
+    """
+    One of the maze gridworlds used by Ramesh et al. 2019 to test Successor Options.
+    Goal Reward: +1
+    Movement Penalty: -0.01
+    """
+
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
+        super().__init__(ramesh_maze, movement_penalty, goal_reward)

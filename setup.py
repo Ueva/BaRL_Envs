@@ -36,6 +36,7 @@ setuptools.setup(
                 "barl_envs/envs/discrete_rooms/data/four_rooms_transfer.txt",
                 "barl_envs/envs/discrete_rooms/data/xu_four_rooms_transfer.txt",
                 "barl_envs/envs/discrete_rooms/data/nine_rooms_transfer.txt",
+                "barl_envs/envs/discrete_rooms/data/ramesh_maze.txt",
             ],
         ),
         (
