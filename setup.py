@@ -44,7 +44,7 @@ setuptools.setup(
             ["barl_envs/envs/grid_pacman/data/four_room.txt"],
         ),
     ],
-    install_requires=["importlib_resources", "importlib_metadata", "numpy", "networkx", "pygame"],
+    install_requires=["importlib_resources", "importlib_metadata", "numpy", "networkx", "pygame==2.1.3.dev8"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
