@@ -13,11 +13,8 @@ TAXI_RANKS = [0, 3, 20, 24, -1]  # -1 means that the passenger is inside the Tax
 
 
 class TaxiEnvironment(BaseEnvironment):
-    def __init__(
-        self, movement_penalty=-0.001, goal_reward=1.0, invalid_penalty=-0.001, options=[], initial_states_order=None
-    ):
-
-        super().__init__(options)
+    def __init__(self, movement_penalty=-0.001, goal_reward=1.0, invalid_penalty=-0.001, initial_states_order=None):
+        super().__init__()
 
         self.movement_penalty = movement_penalty
         self.goal_reward = goal_reward
@@ -50,7 +47,6 @@ class TaxiEnvironment(BaseEnvironment):
         return self.current_state
 
     def step(self, action):
-
         right_wall = [0, 5, 16, 21, 2, 7, 4, 9, 14, 19, 24]
         left_wall = [0, 5, 10, 15, 20, 1, 6, 17, 22, 3, 8]
         up_wall = [20, 21, 22, 23, 24]
@@ -222,7 +218,6 @@ class TaxiEnvironment(BaseEnvironment):
         # taking the legal actions available in the given state.
         successor_states = []
         for action in actions:
-
             right_wall = [0, 5, 16, 21, 2, 7, 4, 9, 14, 19, 24]
             left_wall = [0, 5, 10, 15, 20, 1, 6, 17, 22, 3, 8]
             up_wall = [20, 21, 22, 23, 24]

@@ -34,11 +34,10 @@ class TransferRoomEnvironment(DiscreteRoomEnvironment):
         room_template_file_path,
         movement_penalty=-0.001,
         goal_reward=1.0,
-        options=[],
         initial_states_order=None,
         goal_states_order=None,
     ):
-        super().__init__(room_template_file_path, movement_penalty, goal_reward, options)
+        super().__init__(room_template_file_path, movement_penalty, goal_reward)
 
         if initial_states_order is None:
             self.initial_states_order = None
@@ -103,12 +102,8 @@ class DiscreteTransferXuFourRooms(TransferRoomEnvironment):
     Movement Penalty: -0.001
     """
 
-    def __init__(
-        self, movement_penalty=-0.001, goal_reward=1, options=[], initial_states_order=None, goal_states_order=None
-    ):
-        super().__init__(
-            transfer_xu_four_room, movement_penalty, goal_reward, options, initial_states_order, goal_states_order
-        )
+    def __init__(self, movement_penalty=-0.001, goal_reward=1, initial_states_order=None, goal_states_order=None):
+        super().__init__(transfer_xu_four_room, movement_penalty, goal_reward, initial_states_order, goal_states_order)
 
 
 class DiscreteTransferNineRooms(TransferRoomEnvironment):
@@ -118,9 +113,5 @@ class DiscreteTransferNineRooms(TransferRoomEnvironment):
     Movement Penalty: -0.001
     """
 
-    def __init__(
-        self, movement_penalty=-0.001, goal_reward=1, options=[], initial_states_order=None, goal_states_order=None
-    ):
-        super().__init__(
-            transfer_nine_room, movement_penalty, goal_reward, options, initial_states_order, goal_states_order
-        )
+    def __init__(self, movement_penalty=-0.001, goal_reward=1, initial_states_order=None, goal_states_order=None):
+        super().__init__(transfer_nine_room, movement_penalty, goal_reward, initial_states_order, goal_states_order)

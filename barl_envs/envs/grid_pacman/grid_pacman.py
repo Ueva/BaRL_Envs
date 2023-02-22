@@ -26,8 +26,8 @@ ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
 
 
 class GridPacManEnvironment(BaseEnvironment):
-    def __init__(self, pacman_template_file, movement_penalty=-1.0, goal_reward=10.0, caught_penalty=-20.0, options=[]):
-        super().__init__(options)
+    def __init__(self, pacman_template_file, movement_penalty=-1.0, goal_reward=10.0, caught_penalty=-20.0):
+        super().__init__()
 
         # Initialise environment variables.
         self._initialise_pacman(pacman_template_file)
@@ -42,7 +42,6 @@ class GridPacManEnvironment(BaseEnvironment):
         self.renderer = None
 
     def reset(self, state=None):
-
         if state is not None:
             return copy.deepcopy(state)
         else:
@@ -63,7 +62,6 @@ class GridPacManEnvironment(BaseEnvironment):
         return state
 
     def step(self, action):
-
         current_position = copy.deepcopy(self.position)
 
         # Move agent.
@@ -250,7 +248,6 @@ class GridPacManEnvironment(BaseEnvironment):
             # BUT WILL BE FINE FOR NOW WHILE WE'RE USING ONE.
             next_ghost_positions = copy.deepcopy(ghost_positions)
             for i in range(self.num_ghosts):
-
                 # Find shortest path from ghost position to agent position.
                 ghost_position = ghost_positions[i]
 
@@ -302,7 +299,6 @@ class GridPacManEnvironment(BaseEnvironment):
 
         for y in range(self.gridworld.shape[0]):
             for x in range(self.gridworld.shape[1]):
-
                 if not CELL_TYPES_DICT[self.gridworld[y, x]] == "wall":
                     # Add each non-wall node to the graph.
                     level_graph.add_node((y, x))

@@ -45,8 +45,8 @@ INDEX_TO_ACTION = {
 
 
 class PlayroomEnvironment(BaseEnvironment):
-    def __init__(self, options=[], initial_states_order=None, seed=None):
-        super().__init__(options)
+    def __init__(self, initial_states_order=None, seed=None):
+        super().__init__()
 
         if initial_states_order is None:
             self.initial_states_order = None
@@ -187,7 +187,6 @@ class PlayroomEnvironment(BaseEnvironment):
         return list(itertools.product(items, items, items, [False], [False], [False]))
 
     def get_successors(self, state=None, actions=None, return_probs=False):
-
         if state is None:
             state = self.current_state
 
@@ -197,7 +196,6 @@ class PlayroomEnvironment(BaseEnvironment):
         successors = []
         probs = []
         for action in actions:
-
             eye_item, hand_item, marker_item, light, music, bell = state
 
             # If bell is currently ringing, stop it.
@@ -261,7 +259,6 @@ class PlayroomEnvironment(BaseEnvironment):
                 elif INDEX_TO_ITEM[eye_item] == "MUSIC_SWITCH" and INDEX_TO_ITEM[hand_item] == "MUSIC_SWITCH":
                     # ...and the Light is On, toggle Music.
                     if light:
-
                         # Succeeds with probability 0.75.
                         successors.append((eye_item, hand_item, marker_item, light, not music, bell))
                         probs.append(0.75)
@@ -275,7 +272,6 @@ class PlayroomEnvironment(BaseEnvironment):
                 # If the Marker is currently on the Bell, ring the Bell.
                 elif INDEX_TO_ITEM[eye_item] == "BALL" and INDEX_TO_ITEM[hand_item] == "BALL":
                     if INDEX_TO_ITEM[marker_item] == "BELL":
-
                         # Succeeds with probability 0.75.
                         successors.append((eye_item, hand_item, ITEM_TO_INDEX["BALL"], light, music, True))
                         probs.append(0.75)

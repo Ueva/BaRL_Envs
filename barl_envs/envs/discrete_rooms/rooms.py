@@ -69,7 +69,7 @@ class DiscreteRoomEnvironment(BaseEnvironment):
     Class representing a discrete "rooms-like" gridworld, as is commonly seen in the HRL literature.
     """
 
-    def __init__(self, room_template_file_path, movement_penalty=-0.001, goal_reward=1.0, options=[]):
+    def __init__(self, room_template_file_path, movement_penalty=-0.001, goal_reward=1.0):
         """
         Initialises a new DiscreteRoomEnvironment object.
 
@@ -80,7 +80,7 @@ class DiscreteRoomEnvironment(BaseEnvironment):
             movement_penalty {float} -- Penalty applied each time step for taking an action. (default: {-1.0})
             goal_reward {float} -- Reward given to the agent upon reaching a goal state. (default: {10.0})
         """
-        super().__init__(options)
+        super().__init__()
 
         self._initialise_rooms(room_template_file_path)
         self.movement_penalty = movement_penalty
@@ -125,8 +125,6 @@ class DiscreteRoomEnvironment(BaseEnvironment):
             self.position = random.choice(self.initial_states)
         else:
             self.position = copy.deepcopy(state)
-
-        self.goals = self.terminal_states
 
         self.current_initial_state = self.position
 
@@ -228,14 +226,14 @@ class DiscreteRoomEnvironment(BaseEnvironment):
             self.renderer = RoomRenderer(
                 self.gridworld,
                 start_state=self.current_initial_state,
-                goal_states=self.goals,
+                goal_states=self.terminal_states,
             )
 
         self.renderer.update(
             self.position,
             self.gridworld,
             start_state=self.current_initial_state,
-            goal_states=self.goals,
+            goal_states=self.terminal_states,
         )
 
     def close(self):
@@ -260,7 +258,7 @@ class DiscreteRoomEnvironment(BaseEnvironment):
             state = self.position
 
         # return CELL_TYPES_DICT[self.gridworld[state[0]][state[1]]] == "goal"
-        return state in self.goals
+        return state in self.terminal_states
 
     def get_initial_states(self):
         """

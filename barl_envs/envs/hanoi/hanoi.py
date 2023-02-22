@@ -8,10 +8,9 @@ from barl_envs.renderers import HanoiRenderer
 
 
 class HanoiEnvironment(BaseEnvironment):
-
     metadata = {"render.modes": ["human"]}
 
-    def __init__(self, num_disks=3, num_poles=3, options=[], start_state=None, goal_state=None):
+    def __init__(self, num_disks=3, num_poles=3, start_state=None, goal_state=None):
         """
         Instantiates a new HanoiEnvironment object with a specified number
         of disks and poles.
@@ -20,7 +19,7 @@ class HanoiEnvironment(BaseEnvironment):
             num_disks (int, optional): Number of poles in the environment. Defaults to 3.
             num_poles (int, optional): Number of disks in the environment. Defaults to 3.
         """
-        super().__init__(options)
+        super().__init__()
 
         self.num_disks = num_disks
         self.num_poles = num_poles
