@@ -2,9 +2,9 @@
 import copy
 import itertools
 
-from barl_simpleoptions.environment import BaseEnvironment
+from simpleoptions.environment import BaseEnvironment
 
-from barl_envs.renderers import HanoiRenderer
+from simpleenvs.renderers import HanoiRenderer
 
 
 class HanoiEnvironment(BaseEnvironment):

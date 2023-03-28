@@ -4,7 +4,7 @@ import numpy as np
 
 from itertools import cycle
 
-from barl_envs.envs.discrete_rooms import DiscreteRoomEnvironment
+from simpleenvs.envs.discrete_rooms import DiscreteRoomEnvironment
 
 from . import data
 

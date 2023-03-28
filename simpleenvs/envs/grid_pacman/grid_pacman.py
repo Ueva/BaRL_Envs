@@ -1,10 +1,10 @@
-from barl_simpleoptions.environment import BaseEnvironment
+from simpleoptions.environment import BaseEnvironment
 import copy
 import random
 import numpy as np
 import networkx as nx
 
-from barl_envs.renderers import GridPacManRenderer
+from simpleenvs.renderers import GridPacManRenderer
 
 # Import room template files.
 try:

@@ -2,9 +2,9 @@ import copy
 import random
 import numpy as np
 
-from barl_simpleoptions import BaseEnvironment
+from simpleoptions import BaseEnvironment
 
-from barl_envs.renderers import RoomRenderer
+from simpleenvs.renderers import RoomRenderer
 
 # Import room template files.
 try:

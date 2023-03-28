@@ -1,1 +1,0 @@
-from barl_envs.envs.hanoi.hanoi import HanoiEnvironment

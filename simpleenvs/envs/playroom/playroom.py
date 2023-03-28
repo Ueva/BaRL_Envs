@@ -7,7 +7,7 @@ import networkx as nx
 
 from itertools import cycle
 
-from barl_simpleoptions import BaseEnvironment
+from simpleoptions import BaseEnvironment
 
 ITEM_TO_INDEX = {
     "LIGHT_SWITCH": 0,

@@ -3,9 +3,9 @@ import random
 
 from itertools import cycle
 
-from barl_simpleoptions.environment import BaseEnvironment
+from simpleoptions.environment import BaseEnvironment
 
-from barl_envs.renderers import TaxiRenderer
+from simpleenvs.renderers import TaxiRenderer
 
 
 ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT", 4: "PICKUP", 5: "PUTDOWN"}
