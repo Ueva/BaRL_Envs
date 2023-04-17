@@ -188,7 +188,7 @@ class DiscreteRoomEnvironment(BaseEnvironment):
         return self.state_space
 
     def get_action_space(self):
-        return set(range(4))
+        return {0, 1, 2, 3}
 
     def get_available_actions(self, state=None):
         """
@@ -206,7 +206,7 @@ class DiscreteRoomEnvironment(BaseEnvironment):
         if self.is_state_terminal(state):
             return []
         else:
-            return self.get_action_space()
+            return [0, 1, 2, 3]
 
     def get_action_mask(self, state=None):
         """

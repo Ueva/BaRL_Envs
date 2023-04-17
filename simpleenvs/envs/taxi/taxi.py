@@ -133,7 +133,7 @@ class TaxiEnvironment(BaseEnvironment):
         if self.is_state_terminal(state):
             return []
         else:
-            return self.get_action_space()
+            return [0, 1, 2, 3, 4, 5]
 
     def get_action_mask(self, state=None):
         """

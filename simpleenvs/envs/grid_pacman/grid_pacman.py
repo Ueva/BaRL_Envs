@@ -38,7 +38,7 @@ class GridPacManEnvironment(BaseEnvironment):
         self.ghost_positions = [[0, 0]] * self.num_ghosts
         self.position = (0, 0)
 
-        self.state_space = set(self.generate_interaction_graph(directed=True).nodes)
+        self.state_space = set(self.level_graph.nodes)
 
         self.terminal = True
         self.renderer = None
@@ -49,10 +49,8 @@ class GridPacManEnvironment(BaseEnvironment):
         else:
             self.ghost_positions = copy.deepcopy(self.ghost_starts)
             self.position = random.choice(self.initial_states)
-            self.goal_position = random.choice(self.goal_states)
 
             self.current_initial_state = self.position
-            self.current_goal_state = self.goal_position
 
             # Build the state tuple.
             state = self.position
@@ -101,7 +99,7 @@ class GridPacManEnvironment(BaseEnvironment):
                     next_ghost_positions[i] = [ghost_next_step[0], ghost_next_step[1]]
 
         # If the agent has reached the goal.
-        if next_position == self.goal_position:
+        if next_position in self.goal_states:
             reward += self.goal_reward
             self.terminal = True
         # If a ghost has caught the agent.
@@ -140,7 +138,7 @@ class GridPacManEnvironment(BaseEnvironment):
         if self.is_state_terminal(state):
             return []
         else:
-            return self.get_action_space()
+            return [0, 1, 2, 3]
 
     def get_action_mask(self, state=None):
         """
@@ -168,7 +166,7 @@ class GridPacManEnvironment(BaseEnvironment):
             self.renderer = GridPacManRenderer(
                 self.gridworld,
                 start_state=self.current_initial_state,
-                goal_state=self.current_goal_state,
+                goal_states=self.goal_states,
             )
 
         self.renderer.update(
@@ -176,7 +174,7 @@ class GridPacManEnvironment(BaseEnvironment):
             self.ghost_positions,
             self.gridworld,
             start_state=self.current_initial_state,
-            goal_state=self.current_goal_state,
+            goal_states=self.goal_states,
         )
 
     def close(self):
@@ -195,7 +193,7 @@ class GridPacManEnvironment(BaseEnvironment):
             ghost_positions = [state[i : i + 2] for i in range(2, len(state), 2)]
 
         # Is the agent at the goal state?
-        is_at_goal = position == self.goal_position
+        is_at_goal = position in self.goal_states
 
         # Has the agent been caught by a ghost?
         is_caught = any([position == tuple(ghost_position) for ghost_position in ghost_positions])
@@ -285,15 +283,15 @@ class GridPacManEnvironment(BaseEnvironment):
         self.gridworld = np.loadtxt(pacman_template_file, comments="//", dtype=str)
 
         # Discover initial states, goal states, and ghost starting locations.
-        self.initial_states = []
-        self.goal_states = []
-        self.ghost_starts = []
+        self.initial_states = list()
+        self.goal_states = set()
+        self.ghost_starts = list()
         for y in range(self.gridworld.shape[0]):
             for x in range(self.gridworld.shape[1]):
                 if CELL_TYPES_DICT[self.gridworld[y, x]] == "start":
                     self.initial_states.append((y, x))
                 elif CELL_TYPES_DICT[self.gridworld[y, x]] == "goal":
-                    self.goal_states.append((y, x))
+                    self.goal_states.add((y, x))
                 elif CELL_TYPES_DICT[self.gridworld[y, x]] == "ghost":
                     self.ghost_starts.append([y, x])
 

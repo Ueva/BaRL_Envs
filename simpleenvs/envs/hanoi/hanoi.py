@@ -150,11 +150,9 @@ class HanoiEnvironment(BaseEnvironment):
         if self.is_state_terminal(state):
             return []
         else:
-            legal_actions = []
-            for i in range(len(self.action_list)):
-                if self._is_action_legal(self.action_list[i], state=state):
-                    legal_actions.append(i)
-
+            legal_actions = [
+                i for i, action in enumerate(self.action_list) if self._is_action_legal(action, state=state)
+            ]
             return legal_actions
 
     def get_action_mask(self, state=None):
