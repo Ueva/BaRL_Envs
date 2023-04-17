@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="simpleenvs",
-    version="0.1.1",
+    version="0.1.2",
     author="Joshua Evans",
     author_email="jbe25@bath.ac.uk",
     description="A package which provides implementations of various reinforcement learning environments.",
@@ -50,7 +50,7 @@ setuptools.setup(
         "importlib_metadata",
         "numpy",
         "networkx",
-        "pygame==2.1.3.dev8",
+        "pygame",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

@@ -28,8 +28,9 @@ class HanoiEnvironment(BaseEnvironment):
         # self.action_space = gym.spaces.Discrete(math.factorial(self.num_poles) / math.factorial(self.num_poles - 2))
         # self.state_space = gym.spaces.Tuple(self.num_disks * (gym.spaces.Discrete(self.num_poles),))
 
-        # Initialise action mappings.
+        # Initialise state and action mappings.
         self.action_list = list(itertools.permutations(list(range(self.num_poles)), 2))
+        self.state_list = list(itertools.product(list(range(self.num_poles)), repeat=self.num_disks))
 
         # Set start state.
         if start_state is not None:
@@ -126,8 +127,11 @@ class HanoiEnvironment(BaseEnvironment):
             self.renderer.close()
             self.renderer = None
 
+    def get_state_space(self):
+        return self.state_list
+
     def get_action_space(self):
-        return list(range(len(self.action_list)))
+        return set(range(len(self.action_list)))
 
     def get_available_actions(self, state=None):
         """
@@ -146,11 +150,9 @@ class HanoiEnvironment(BaseEnvironment):
         if self.is_state_terminal(state):
             return []
         else:
-            legal_actions = []
-            for i in range(len(self.action_list)):
-                if self._is_action_legal(self.action_list[i], state=state):
-                    legal_actions.append(i)
-
+            legal_actions = [
+                i for i, action in enumerate(self.action_list) if self._is_action_legal(action, state=state)
+            ]
             return legal_actions
 
     def get_action_mask(self, state=None):

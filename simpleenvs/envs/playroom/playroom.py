@@ -48,6 +48,8 @@ class PlayroomEnvironment(BaseEnvironment):
     def __init__(self, initial_states_order=None, seed=None):
         super().__init__()
 
+        self.state_space = set(self.generate_interaction_graph(directed=True).nodes)
+
         if initial_states_order is None:
             self.initial_states_order = None
         else:
@@ -130,8 +132,11 @@ class PlayroomEnvironment(BaseEnvironment):
 
         return (eye_item, hand_item, marker_item, light, music, bell), reward, terminal, {}
 
+    def get_state_space(self):
+        return self.state_space
+
     def get_action_space(self):
-        return [0, 1, 2, 3, 4, 5]
+        return {0, 1, 2, 3, 4, 5}
 
     def get_available_actions(self, state=None):
         if state is None:

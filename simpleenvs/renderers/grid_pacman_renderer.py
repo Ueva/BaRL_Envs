@@ -30,31 +30,30 @@ TILESIZE = 16
 
 
 class GridPacManRenderer(object):
-    def __init__(self, level_layout, start_state=None, goal_state=None):
-
-        self._update_room_layout(level_layout, start_state, goal_state)
+    def __init__(self, level_layout, start_state=None, goal_states=None):
+        self._update_room_layout(level_layout, start_state, goal_states)
 
         # Initialise pygame and display window.
         pygame.init()
         self.display_window = pygame.display.set_mode((self.width * TILESIZE, self.height * TILESIZE))
 
-    def _update_room_layout(self, level_layout, start_state=None, goal_state=None):
+    def _update_room_layout(self, level_layout, start_state=None, goal_states=None):
         self.level = level_layout.tolist()
         self.height = len(level_layout)
         self.width = len(level_layout[0])
 
         self.start_state = start_state
-        self.goal_state = goal_state
+        self.goal_states = goal_states
 
         for y in range(self.height):
             for x in range(self.width):
                 if self.level[y][x] == GHOST:
                     self.level[y][x] = FLOOR
 
-    def update(self, agent_position, ghost_positions, level_layout, start_state=None, goal_state=None):
+    def update(self, agent_position, ghost_positions, level_layout, start_state=None, goal_states=None):
         pygame.event.get()
 
-        self._update_room_layout(level_layout, start_state, goal_state)
+        self._update_room_layout(level_layout, start_state, goal_states)
 
         current_rooms = self.level[:]
 
@@ -64,9 +63,10 @@ class GridPacManRenderer(object):
             current_rooms[i][j] = START
 
         # Designate the goal tile.
-        if self.goal_state is not None:
-            i, j = self.goal_state
-            current_rooms[i][j] = GOAL
+        if self.goal_states is not None:
+            for goal_state in self.goal_states:
+                i, j = goal_state
+                current_rooms[i][j] = GOAL
 
         # Designate the agent's current tile.
         i, j = agent_position

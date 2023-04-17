@@ -25,6 +25,8 @@ class TaxiEnvironment(BaseEnvironment):
         self.destination_state = None
         self.terminal = True
 
+        self.state_space = set(self.generate_interaction_graph(directed=True).nodes)
+
         self.renderer = None
 
         if initial_states_order is None:
@@ -108,8 +110,11 @@ class TaxiEnvironment(BaseEnvironment):
             self.renderer.close()
             self.renderer = None
 
+    def get_state_space(self):
+        return self.state_space
+
     def get_action_space(self):
-        return [0, 1, 2, 3, 4, 5]
+        return {0, 1, 2, 3, 4, 5}
 
     def get_available_actions(self, state=None):
         """
@@ -128,7 +133,7 @@ class TaxiEnvironment(BaseEnvironment):
         if self.is_state_terminal(state):
             return []
         else:
-            return self.get_action_space()
+            return [0, 1, 2, 3, 4, 5]
 
     def get_action_mask(self, state=None):
         """
