@@ -83,6 +83,7 @@ class DiscreteRoomEnvironment(BaseEnvironment):
         super().__init__()
 
         self._initialise_rooms(room_template_file_path)
+        self._initialise_state_space()
         self.movement_penalty = movement_penalty
         self.goal_reward = goal_reward
         self.is_reset = False
@@ -108,6 +109,14 @@ class DiscreteRoomEnvironment(BaseEnvironment):
                     self.initial_states.append((y, x))
                 elif CELL_TYPES_DICT[self.gridworld[y, x]] == "goal":
                     self.terminal_states.append((y, x))
+
+    def _initialise_state_space(self):
+        # Create set of all valid states.
+        self.state_space = set()
+        for y in range(self.gridworld.shape[0]):
+            for x in range(self.gridworld.shape[1]):
+                if CELL_TYPES_DICT[self.gridworld[y, x]] != "wall":
+                    self.state_space.add((y, x))
 
     def reset(self, state=None):
         """
@@ -175,8 +184,11 @@ class DiscreteRoomEnvironment(BaseEnvironment):
 
         return next_state, reward, terminal, {}
 
+    def get_state_space(self):
+        return self.state_space
+
     def get_action_space(self):
-        return list(range(4))
+        return set(range(4))
 
     def get_available_actions(self, state=None):
         """

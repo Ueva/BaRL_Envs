@@ -38,6 +38,8 @@ class GridPacManEnvironment(BaseEnvironment):
         self.ghost_positions = [[0, 0]] * self.num_ghosts
         self.position = (0, 0)
 
+        self.state_space = set(self.generate_interaction_graph(directed=True).nodes)
+
         self.terminal = True
         self.renderer = None
 
@@ -116,8 +118,11 @@ class GridPacManEnvironment(BaseEnvironment):
 
         return state, reward, self.terminal, {}
 
+    def get_state_space(self):
+        return self.state_space
+
     def get_action_space(self):
-        return list(range(4))
+        return {0, 1, 2, 3}
 
     def get_available_actions(self, state=None):
         """
