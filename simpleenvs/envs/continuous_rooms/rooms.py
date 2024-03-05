@@ -1,5 +1,6 @@
 import math
 import random
+import pygame
 import numpy as np
 import gymnasium as gym
 
@@ -13,17 +14,24 @@ ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
 
 class ContinuousRoomsEnvironment(gym.Env):
 
-    metadata = {"render.modes": ["human", "rgb_array", "ascii"]}
+    metadata = {"render.modes": ["human", "rgb_array"]}
 
-    def __init__(self, room_template_file_path, explorable=False):
+    def __init__(self, room_template_file_path, explorable=False, render_mode="human"):
         super().__init__()
 
+        # Initialise gridworld based on template file.
         self._initialise_rooms(room_template_file_path, explorable)
 
+        # Define observation and action spaces.
         self.observation_space = gym.spaces.Box(
             low=np.array([-10.0, -10.0]), high=np.array([10.0, 10.0]), dtype=np.float32
         )  # 2D continuous state space.
         self.action_space = gym.spaces.Discrete(4)  # 4 discrete actions.
+
+        # Rendering variables.
+        self.render_mode = render_mode
+        self.window = None
+        self.clock = None
 
     def _initialise_rooms(self, room_template_file_path, explorable):
         # Load gridworld template file.
@@ -97,8 +105,55 @@ class ContinuousRoomsEnvironment(gym.Env):
 
         return self._get_obs(), reward, terminal, False, {}
 
+    def render(self):
+        if self.render_mode == "rgb_array":
+            return self._render_frame()
+        else:
+            self._render_frame()
+
+    def _render_frame(self):
+        tile_size = 32
+
+        if self.window is None and self.render_mode == "human":
+            pygame.init()
+            pygame.display.init()
+            self.window = pygame.display.set_mode((self.x_cells * tile_size, self.y_cells * tile_size))
+
+        if self.clock is None and self.render_mode == "human":
+            self.clock = pygame.time.Clock()
+
+        canvas = pygame.Surface((self.x_cells * tile_size, self.y_cells * tile_size))
+        canvas.fill((255, 255, 255))
+
+        # Draw Gridworld.
+        for x in range(self.x_cells):
+            for y in range(self.y_cells):
+                if CELL_TYPES_DICT[self.gridworld[y, x]] == "wall":
+                    pygame.draw.rect(canvas, (0, 0, 0), (x * tile_size, y * tile_size, tile_size, tile_size))
+                elif CELL_TYPES_DICT[self.gridworld[y, x]] == "start":
+                    pygame.draw.rect(canvas, (0, 255, 0), (x * tile_size, y * tile_size, tile_size, tile_size))
+                elif CELL_TYPES_DICT[self.gridworld[y, x]] == "goal":
+                    pygame.draw.rect(canvas, (255, 0, 0), (x * tile_size, y * tile_size, tile_size, tile_size))
+
+        # Draw Agent.
+        pygame.draw.circle(
+            canvas, (0, 0, 255), (int(self.current_state[1] * tile_size), int(self.current_state[0] * tile_size)), 10
+        )
+
+        # If rendering for a human, render to screen.
+        if self.render_mode == "human":
+            self.window.blit(canvas, canvas.get_rect())
+            pygame.event.pump()
+            pygame.display.update()
+            pygame.time.wait(10)
+        # Else, return an rgb array
+        else:
+            return np.transpose(np.array(pygame.surfarray.pixels3d(canvas)), axes=(1, 0, 2))
+
     def close(self):
-        pass
+        if self.window is not None:
+            pygame.display.quit()
+            pygame.quit()
 
     def _get_obs(self):
         return np.array([self.y_interp(self.current_state[0]), self.x_interp(self.current_state[1])], dtype=np.float32)
@@ -140,7 +195,8 @@ if __name__ == "__main__":
         while not terminal:
             action = env.action_space.sample()
             next_state, reward, terminal, _, _ = env.step(action)
-            print("{}:\t{}, {} --> {}".format(i, state, ACTIONS_DICT[action], next_state))
+            # print("{}:\t{}, {} --> {}".format(i, state, ACTIONS_DICT[action], next_state))
+            env.render()
             state = next_state
             i += 1
 

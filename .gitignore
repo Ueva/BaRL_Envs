@@ -106,5 +106,8 @@ venv.bak/
 # Visual Studio Code
 .vscode/*
 
+# Profiling Files
+*.profile
+
 # Testing files.
 test.py
