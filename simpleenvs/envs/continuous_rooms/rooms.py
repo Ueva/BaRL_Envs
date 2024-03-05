@@ -77,17 +77,18 @@ class ContinuousRoomsEnvironment(gym.Env):
 
         current_state = self.current_state
         next_state = self.current_state
-        noise = random.uniform(-0.2, 0.0)
+        noise_on_dir = random.uniform(-0.3, 0.0)
+        noise_off_dir = random.uniform(-0.1, 0.1)
 
         # Move the agent.
         if action == 0:  # UP
-            next_state = (current_state[0] - 1 - noise, current_state[1])
+            next_state = (current_state[0] - 1 - noise_on_dir, current_state[1] + noise_off_dir)
         elif action == 1:  # DOWN
-            next_state = (current_state[0] + 1 + noise, current_state[1])
+            next_state = (current_state[0] + 1 + noise_on_dir, current_state[1] + noise_off_dir)
         elif action == 2:  # LEFT
-            next_state = (current_state[0], current_state[1] - 1 - noise)
+            next_state = (current_state[0] + noise_off_dir, current_state[1] - 1 - noise_on_dir)
         elif action == 3:  # RIGHT
-            next_state = (current_state[0], current_state[1] + 1 + noise)
+            next_state = (current_state[0] + noise_off_dir, current_state[1] + 1 + noise_on_dir)
 
         reward = 0.0
         terminal = False
@@ -113,6 +114,7 @@ class ContinuousRoomsEnvironment(gym.Env):
 
     def _render_frame(self):
         tile_size = 32
+        agent_size = 8
 
         if self.window is None and self.render_mode == "human":
             pygame.init()
@@ -137,7 +139,10 @@ class ContinuousRoomsEnvironment(gym.Env):
 
         # Draw Agent.
         pygame.draw.circle(
-            canvas, (0, 0, 255), (int(self.current_state[1] * tile_size), int(self.current_state[0] * tile_size)), 10
+            canvas,
+            (0, 0, 255),
+            (int(self.current_state[1] * tile_size), int(self.current_state[0] * tile_size)),
+            agent_size,
         )
 
         # If rendering for a human, render to screen.
@@ -164,7 +169,7 @@ class ContinuousRoomsEnvironment(gym.Env):
 
 if __name__ == "__main__":
 
-    env = ContinuousRoomsEnvironment("simpleenvs/envs/continuous_rooms/data/xu_four_rooms.txt")
+    env = ContinuousRoomsEnvironment("simpleenvs/envs/continuous_rooms/data/xu_four_rooms.txt", render_mode="human")
     env = GymWrapper(env)
 
     # i = 0
@@ -186,7 +191,7 @@ if __name__ == "__main__":
 
     # env.close()
 
-    for _ in range(100):
+    for _ in range(1000):
 
         state, _ = env.reset()
         terminal = False
@@ -199,5 +204,4 @@ if __name__ == "__main__":
             env.render()
             state = next_state
             i += 1
-
     env.close()
