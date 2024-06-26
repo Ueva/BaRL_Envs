@@ -2,25 +2,23 @@
 import copy
 import itertools
 
-from simpleoptions.environment import BaseEnvironment
+from simpleoptions.environment import TransititonMatrixBaseEnvironment
 
 from simpleenvs.renderers import HanoiRenderer
 
 
-class HanoiEnvironment(BaseEnvironment):
+class HanoiEnvironment(TransititonMatrixBaseEnvironment):
     metadata = {"render.modes": ["human"]}
 
-    def __init__(self, num_disks=3, num_poles=3, start_state=None, goal_state=None):
+    def __init__(self, num_disks=4, num_poles=3, start_state=None, goal_state=None):
         """
         Instantiates a new HanoiEnvironment object with a specified number
         of disks and poles.
 
         Args:
-            num_disks (int, optional): Number of poles in the environment. Defaults to 3.
+            num_disks (int, optional): Number of poles in the environment. Defaults to 4.
             num_poles (int, optional): Number of disks in the environment. Defaults to 3.
         """
-        super().__init__()
-
         self.num_disks = num_disks
         self.num_poles = num_poles
 
@@ -52,6 +50,8 @@ class HanoiEnvironment(BaseEnvironment):
 
         self.renderer = None
 
+        super().__init__(deterministic=True)
+
     def reset(self, state=None):
         """
         Resets the environment to an initial state, with all disks stacked
@@ -72,48 +72,15 @@ class HanoiEnvironment(BaseEnvironment):
         self.terminal = False
         return copy.deepcopy(self.current_state)
 
-    def step(self, action):
-        """
-        Executes the given action in the environment, causing it to transition
-        to a new state and yield some reward.
-
-        Args:
-            action (int): Index of the action to execute.
-
-        Raises:
-            RuntimeError: Raised when the environment has not been reset at the start of a new episode.
-
-        Returns:
-            next_state (tuple), reward (float), terminal (bool), info (dict)
-        """
-        if self.terminal:
-            raise RuntimeError("Please call env.reset() before starting a new episode.")
-
-        # Initialise transition info.
-        info = {"invalid_action": False}
-
-        new_state = list(self.current_state)
-        source_pole, dest_pole = self.action_list[action]
-
-        # If the chosen action is legal, determine the next state.
-        if self._is_action_legal((source_pole, dest_pole)):
-            disk_to_move = min(self._disks_on_pole(source_pole))
-            new_state[disk_to_move] = dest_pole
-            new_state = tuple(new_state)
-        # If the chosen action is illegal, state doesn't change.
+    def step(self, action, state=None):
+        if state is None:
+            next_state, reward, terminal, info = super().step(action, state=self.current_state)
         else:
-            info["invalid_action"] = True
+            next_state, reward, terminal, info = super().step(action, state=state)
 
-        # Reward is 1 for reaching the goal state, -0.001 otherwise.
-        reward = 1 if new_state == self.goal_state else -0.001
+        self.current_state = next_state
 
-        # Only the goal state is terminal.
-        self.done = True if new_state == self.goal_state else False
-
-        # Update current state.
-        self.current_state = new_state
-
-        return self.current_state, reward, self.done, info
+        return next_state, reward, terminal, info
 
     def render(self, mode="human"):
         pass
@@ -192,33 +159,25 @@ class HanoiEnvironment(BaseEnvironment):
         return [self.start_state]
 
     def get_successors(self, state=None, actions=None):
-        """
-        Returns a list of states which can be reached by taking an action in the given state.
-        If no state is specified, a list of successor states for the current state will be returned.
-
-        Args:
-            state (tuple, optional): The state to return successors for. Defaults to None (i.e. current state).
-            actions (List[Hashable], optional): The actions to test in the given state when searching for successors. Defaults to None (i.e. tests all available actions).
-
-        Returns:
-            list[tuple]: A list of states reachable by taking an action in the given state.
-        """
         if state is None:
             state = self.current_state
 
-        new_state = state
         if actions is None:
-            actions = self.get_available_actions(state=new_state)
+            actions = self.get_available_actions(state=state)
 
         # Creates a list of all states which can be reached by
         # taking the legal actions available in the given state.
         successor_states = []
         for action in actions:
-            successor_state = list(copy.deepcopy(state))
+            successor_state = list(state)
             source_pole, dest_pole = self.action_list[action]
-            disk_to_move = min(self._disks_on_pole(source_pole, state=new_state))
+            disk_to_move = min(self._disks_on_pole(source_pole, state=state))
             successor_state[disk_to_move] = dest_pole
-            successor_states.append(copy.deepcopy(tuple(successor_state)))
+            successor_state = tuple(successor_state)
+
+            reward = 1.0 if successor_state == self.goal_state else -0.001
+
+            successor_states.append(((successor_state, reward), 1.0 / len(actions)))
 
         return successor_states
 
