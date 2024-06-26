@@ -167,6 +167,22 @@ class ContinuousRoomsEnvironment(gym.Env):
         return np.array([self.current_state[0], self.current_state[1]], dtype=np.int32)
 
 
+try:
+    import importlib.resources as pkg_resources
+except ImportError:
+    import importlib_resources as pkg_resources
+
+from . import data
+
+with pkg_resources.path(data, "xu_four_rooms.txt") as path:
+    xu_four_rooms = path
+
+
+class ContinuousFourRooms(ContinuousRoomsEnvironment):
+    def __init__(self, explorable=False, render_mode="human"):
+        super().__init__(xu_four_rooms, explorable, render_mode)
+
+
 if __name__ == "__main__":
 
     env = ContinuousRoomsEnvironment("simpleenvs/envs/continuous_rooms/data/xu_four_rooms.txt", render_mode="human")
@@ -198,7 +214,8 @@ if __name__ == "__main__":
 
         i = 0
         while not terminal:
-            action = env.action_space.sample()
+            # action = env.action_space.sample()
+            action = 1
             next_state, reward, terminal, _, _ = env.step(action)
             # print("{}:\t{}, {} --> {}".format(i, state, ACTIONS_DICT[action], next_state))
             env.render()
