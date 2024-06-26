@@ -108,3 +108,4 @@ venv.bak/
 
 # Testing files.
 test.py
+*.profile
