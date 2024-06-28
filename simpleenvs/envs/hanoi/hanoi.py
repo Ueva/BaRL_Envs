@@ -2,12 +2,12 @@
 import copy
 import itertools
 
-from simpleoptions.environment import TransititonMatrixBaseEnvironment
+from simpleoptions.environment import TransitionMatrixBaseEnvironment
 
 from simpleenvs.renderers import HanoiRenderer
 
 
-class HanoiEnvironment(TransititonMatrixBaseEnvironment):
+class HanoiEnvironment(TransitionMatrixBaseEnvironment):
     metadata = {"render.modes": ["human"]}
 
     def __init__(self, num_disks=4, num_poles=3, start_state=None, goal_state=None):

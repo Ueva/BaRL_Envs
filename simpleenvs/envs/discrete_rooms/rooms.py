@@ -2,7 +2,7 @@ import copy
 import random
 import numpy as np
 
-from simpleoptions import TransititonMatrixBaseEnvironment
+from simpleoptions import TransitionMatrixBaseEnvironment
 
 from simpleenvs.renderers import RoomRenderer
 
@@ -11,7 +11,7 @@ CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "a
 ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
 
 
-class DiscreteRoomEnvironment(TransititonMatrixBaseEnvironment):
+class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
     """
     Class representing a discrete "rooms-like" gridworld, as is commonly seen in the HRL literature.
     """
@@ -216,7 +216,7 @@ class DiscreteRoomEnvironment(TransititonMatrixBaseEnvironment):
                 next_state = (state[0], state[1] - 1)
 
             if CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]] == "wall":
-                next_state = copy.deepcopy(state)
+                next_state = (state[0], state[1])
 
             if self.is_state_terminal(state=(next_state[0], next_state[1])):
                 reward = self.goal_reward
