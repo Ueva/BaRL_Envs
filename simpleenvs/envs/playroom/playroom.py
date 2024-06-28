@@ -58,7 +58,7 @@ class PlayroomEnvironment(TransitionMatrixBaseEnvironment):
         if seed is not None:
             self.seed(seed)
 
-        super().__init__()
+        super().__init__(deterministic=False)
 
     def reset(self, state=None):
         # If an initial state is specified, use it.
@@ -216,6 +216,8 @@ class PlayroomEnvironment(TransitionMatrixBaseEnvironment):
                         successors.append((((eye_item, hand_item, marker_item, light, music, bell), -0.001), 0.25))
 
                     # Otherwise, the Music Switch does nothing.
+                    else:
+                        successors.append((((eye_item, hand_item, marker_item, light, music, bell), -0.001), 1.0))
                 # If the Eye and Hand are on the Ball, kick the ball at the Marker.
                 # If the Marker is currently on the Bell, ring the Bell.
                 elif INDEX_TO_ITEM[eye_item] == "BALL" and INDEX_TO_ITEM[hand_item] == "BALL":
