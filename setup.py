@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="simpleenvs",
-    version="0.1.2",
+    version="0.2.0",
     author="Joshua Evans",
     author_email="jbe25@bath.ac.uk",
     description="A package which provides implementations of various reinforcement learning environments.",
@@ -33,9 +33,6 @@ setuptools.setup(
                 "simpleenvs/envs/discrete_rooms/data/spiral_room.txt",
                 "simpleenvs/envs/discrete_rooms/data/parr_maze.txt",
                 "simpleenvs/envs/discrete_rooms/data/parr_mini_maze.txt",
-                "simpleenvs/envs/discrete_rooms/data/four_rooms_transfer.txt",
-                "simpleenvs/envs/discrete_rooms/data/xu_four_rooms_transfer.txt",
-                "simpleenvs/envs/discrete_rooms/data/nine_rooms_transfer.txt",
                 "simpleenvs/envs/discrete_rooms/data/ramesh_maze.txt",
             ],
         ),
