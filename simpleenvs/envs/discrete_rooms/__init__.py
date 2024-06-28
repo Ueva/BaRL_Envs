@@ -15,8 +15,3 @@ from simpleenvs.envs.discrete_rooms.rooms import SpiralRoom
 from simpleenvs.envs.discrete_rooms.rooms import ParrMaze
 from simpleenvs.envs.discrete_rooms.rooms import ParrMiniMaze
 from simpleenvs.envs.discrete_rooms.rooms import RameshMaze
-
-# Transfer Rooms
-from simpleenvs.envs.discrete_rooms.transfer_rooms import DiscreteTransferFourRooms
-from simpleenvs.envs.discrete_rooms.transfer_rooms import DiscreteTransferXuFourRooms
-from simpleenvs.envs.discrete_rooms.transfer_rooms import DiscreteTransferNineRooms
