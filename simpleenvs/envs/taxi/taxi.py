@@ -3,7 +3,7 @@ import random
 
 from itertools import cycle
 
-from simpleoptions.environment import BaseEnvironment
+from simpleoptions import BaseEnvironment, TransitionMatrixBaseEnvironment
 
 from simpleenvs.renderers import TaxiRenderer
 
@@ -12,10 +12,8 @@ ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT", 4: "PICKUP", 5: "PUTD
 TAXI_RANKS = [0, 3, 20, 24, -1]  # -1 means that the passenger is inside the Taxi.
 
 
-class TaxiEnvironment(BaseEnvironment):
+class TaxiEnvironment(TransitionMatrixBaseEnvironment):
     def __init__(self, movement_penalty=-0.001, goal_reward=1.0, invalid_penalty=-0.001, initial_states_order=None):
-        super().__init__()
-
         self.movement_penalty = movement_penalty
         self.goal_reward = goal_reward
         self.invalid_penalty = invalid_penalty
@@ -34,6 +32,8 @@ class TaxiEnvironment(BaseEnvironment):
         else:
             self.initial_states_order = cycle(initial_states_order)
 
+        super().__init__()
+
     def reset(self, state=None):
         # If an initial state is specified, use it.
         if state is not None:
@@ -48,55 +48,15 @@ class TaxiEnvironment(BaseEnvironment):
         self.terminal = False
         return self.current_state
 
-    def step(self, action):
-        right_wall = [0, 5, 16, 21, 2, 7, 4, 9, 14, 19, 24]
-        left_wall = [0, 5, 10, 15, 20, 1, 6, 17, 22, 3, 8]
-        up_wall = [20, 21, 22, 23, 24]
-        down_wall = [0, 1, 2, 3, 4]
+    def step(self, action, state=None):
+        if state is None:
+            next_state, reward, terminal, info = super().step(action, state=self.current_state)
+        else:
+            next_state, reward, terminal, info = super().step(action, state=state)
 
-        taxi_pos, passenger_pos, goal_pos = self.current_state
-        taxi_x, taxi_y = self._number_to_coords(taxi_pos)
+        self.current_state = next_state
 
-        reward = self.movement_penalty
-
-        ## Movement actions.
-        # Tries to move right when not blocked.
-        if ACTIONS_DICT[action] == "RIGHT" and (taxi_pos not in right_wall):
-            taxi_x += 1
-        # Tries to move left when not blocked.
-        elif ACTIONS_DICT[action] == "LEFT" and (taxi_pos not in left_wall):
-            taxi_x -= 1
-        # Tries to move up when not blocked.
-        elif ACTIONS_DICT[action] == "UP" and (taxi_pos not in up_wall):
-            taxi_y += 1
-        # Tries to move down when not blocked.
-        elif ACTIONS_DICT[action] == "DOWN" and (taxi_pos not in down_wall):
-            taxi_y -= 1
-
-        ## Pickup action.
-        if ACTIONS_DICT[action] == "PICKUP":
-            # Tries to pickup when able to pick up the passenger.
-            if taxi_pos == TAXI_RANKS[passenger_pos]:
-                passenger_pos = 4
-            # Tries to pickup when unable to pick up the passenger.
-            else:
-                reward += self.invalid_penalty
-
-        ## Putdown action.
-        if ACTIONS_DICT[action] == "PUTDOWN":
-            # Tries to putdown correctly.
-            if taxi_pos == TAXI_RANKS[goal_pos] and TAXI_RANKS[passenger_pos] == -1:
-                passenger_pos = goal_pos
-                reward += self.goal_reward
-                self.terminal = True
-            # Tries to putdown incorrectly.
-            else:
-                reward += self.invalid_penalty
-
-        taxi_pos = self._coords_to_number(taxi_x, taxi_y)
-
-        self.current_state = (taxi_pos, passenger_pos, goal_pos)
-        return copy.deepcopy(self.current_state), reward, self.terminal, {}
+        return next_state, reward, terminal, info
 
     def render(self, mode="human"):
         pass
@@ -231,6 +191,8 @@ class TaxiEnvironment(BaseEnvironment):
             taxi_pos, passenger_pos, goal_pos = state
             taxi_x, taxi_y = self._number_to_coords(taxi_pos)
 
+            reward = self.movement_penalty
+
             ## Movement actions.
             # Tries to move right when not blocked.
             if ACTIONS_DICT[action] == "RIGHT" and taxi_pos not in right_wall:
@@ -250,15 +212,19 @@ class TaxiEnvironment(BaseEnvironment):
                 # Tries to pickup when able to pick up the passenger.
                 if taxi_pos == TAXI_RANKS[passenger_pos]:
                     passenger_pos = 4
+                else:
+                    reward += self.invalid_penalty
 
             ## Putdown action.
             if ACTIONS_DICT[action] == "PUTDOWN":
                 # Tries to putdown correctly.
                 if taxi_pos == TAXI_RANKS[goal_pos] and TAXI_RANKS[passenger_pos] == -1:
                     passenger_pos = goal_pos
+                else:
+                    reward += self.invalid_penalty
 
             taxi_pos = self._coords_to_number(taxi_x, taxi_y)
-            successor_states.append(copy.deepcopy((taxi_pos, passenger_pos, goal_pos)))
+            successor_states.append((((taxi_pos, passenger_pos, goal_pos), reward), 1.0 / len(actions)))
 
         return successor_states
 
