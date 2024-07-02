@@ -12,8 +12,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Ueva/BaRL-Envs",
-    # packages=setuptools.find_packages(exclude=("example", "test")),
-    packages=["simpleenvs"],
+    packages=setuptools.find_packages(exclude=("test")),
     package_dir={"simpleenvs": "simpleenvs"},
     data_files=[
         (
