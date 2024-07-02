@@ -11,6 +11,8 @@ from itertools import cycle
 
 from simpleoptions import BaseEnvironment, TransitionMatrixBaseEnvironment
 
+from simpleenvs.utils import reduce_prob_tuples
+
 ITEM_TO_INDEX = {
     "LIGHT_SWITCH": 0,
     "MUSIC_SWITCH": 1,
@@ -247,7 +249,7 @@ class PlayroomEnvironment(TransitionMatrixBaseEnvironment):
                         # Has no effect with probability 0.25.
                         successors.append((((eye_item, hand_item, marker_item, light, music, bell), -0.001), 0.25))
 
-        return successors
+        return reduce_prob_tuples(successors)
 
     def seed(self, seed):
         random.seed(seed)
