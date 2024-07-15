@@ -1,5 +1,10 @@
-# Default Rooms
+# Base Classes.
 from simpleenvs.envs.discrete_rooms.rooms import DiscreteRoomEnvironment
+
+# Wrappers.
+from simpleenvs.envs.discrete_rooms.room_wrappers import ExplorableWrapper
+
+# Pre-Loaded Room Layouts.
 from simpleenvs.envs.discrete_rooms.rooms import DiscreteDefaultTwoRooms
 from simpleenvs.envs.discrete_rooms.rooms import DiscreteDefaultSixRooms
 from simpleenvs.envs.discrete_rooms.rooms import DiscreteDefaultNineRooms
