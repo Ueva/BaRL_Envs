@@ -18,6 +18,7 @@ class TaxiEnvironment(TransitionMatrixBaseEnvironment):
         self.goal_reward = goal_reward
         self.invalid_penalty = invalid_penalty
 
+    def __init__(self, initial_states_order=None):
         self.current_state = None
         self.source_state = None
         self.destination_state = None
@@ -192,6 +193,7 @@ class TaxiEnvironment(TransitionMatrixBaseEnvironment):
             taxi_x, taxi_y = self._number_to_coords(taxi_pos)
 
             reward = self.movement_penalty
+            reward = -0.001
 
             ## Movement actions.
             # Tries to move right when not blocked.
@@ -214,14 +216,19 @@ class TaxiEnvironment(TransitionMatrixBaseEnvironment):
                     passenger_pos = 4
                 else:
                     reward += self.invalid_penalty
+                    reward += -0.001
 
             ## Putdown action.
             if ACTIONS_DICT[action] == "PUTDOWN":
                 # Tries to putdown correctly.
+                # If the agent is carrying the passenger and tries to put down in the goal location,
+                # the passenger location changes to the goal location and the agent receives a reward of +1.0.
                 if taxi_pos == TAXI_RANKS[goal_pos] and TAXI_RANKS[passenger_pos] == -1:
                     passenger_pos = goal_pos
+                    reward += 1.0
                 else:
                     reward += self.invalid_penalty
+                    reward += -0.001
 
             taxi_pos = self._coords_to_number(taxi_x, taxi_y)
             successor_states.append((((taxi_pos, passenger_pos, goal_pos), reward), 1.0 / len(actions)))
