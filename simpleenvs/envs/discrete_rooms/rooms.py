@@ -284,6 +284,7 @@ with pkg_resources.path(data, "ramesh_maze.txt") as path:
 with pkg_resources.path(data, "wide_path.txt") as path:
     wide_path = path
 
+
 class DiscreteDefaultTwoRooms(DiscreteRoomEnvironment):
     """
     A default two-rooms environment, as is commonly featured in the HRL literature.

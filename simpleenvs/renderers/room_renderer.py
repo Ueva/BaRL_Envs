@@ -62,7 +62,7 @@ class RoomRenderer(object):
 
         # Designate the goal tile.
         if self.goal_states is not None:
-            for (i, j) in self.goal_states:
+            for i, j in self.goal_states:
                 current_rooms[i][j] = GOAL
 
         # Designate the agent's current tile.
