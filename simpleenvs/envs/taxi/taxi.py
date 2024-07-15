@@ -13,11 +13,6 @@ TAXI_RANKS = [0, 3, 20, 24, -1]  # -1 means that the passenger is inside the Tax
 
 
 class TaxiEnvironment(TransitionMatrixBaseEnvironment):
-    def __init__(self, movement_penalty=-0.001, goal_reward=1.0, invalid_penalty=-0.001, initial_states_order=None):
-        self.movement_penalty = movement_penalty
-        self.goal_reward = goal_reward
-        self.invalid_penalty = invalid_penalty
-
     def __init__(self, initial_states_order=None):
         self.current_state = None
         self.source_state = None
@@ -59,8 +54,13 @@ class TaxiEnvironment(TransitionMatrixBaseEnvironment):
 
         return next_state, reward, terminal, info
 
-    def render(self, mode="human"):
-        pass
+    def render(self):
+        if self.renderer is None:
+            self.renderer = TaxiRenderer()
+
+        self.renderer.update(
+            self.current_state,
+        )
 
     def close(self):
         """
@@ -192,7 +192,6 @@ class TaxiEnvironment(TransitionMatrixBaseEnvironment):
             taxi_pos, passenger_pos, goal_pos = state
             taxi_x, taxi_y = self._number_to_coords(taxi_pos)
 
-            reward = self.movement_penalty
             reward = -0.001
 
             ## Movement actions.
@@ -215,19 +214,16 @@ class TaxiEnvironment(TransitionMatrixBaseEnvironment):
                 if taxi_pos == TAXI_RANKS[passenger_pos]:
                     passenger_pos = 4
                 else:
-                    reward += self.invalid_penalty
                     reward += -0.001
 
             ## Putdown action.
             if ACTIONS_DICT[action] == "PUTDOWN":
-                # Tries to putdown correctly.
                 # If the agent is carrying the passenger and tries to put down in the goal location,
                 # the passenger location changes to the goal location and the agent receives a reward of +1.0.
                 if taxi_pos == TAXI_RANKS[goal_pos] and TAXI_RANKS[passenger_pos] == -1:
                     passenger_pos = goal_pos
                     reward += 1.0
                 else:
-                    reward += self.invalid_penalty
                     reward += -0.001
 
             taxi_pos = self._coords_to_number(taxi_x, taxi_y)
