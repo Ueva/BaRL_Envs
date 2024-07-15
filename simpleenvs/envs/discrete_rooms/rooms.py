@@ -281,6 +281,8 @@ with pkg_resources.path(data, "parr_mini_maze.txt") as path:
 with pkg_resources.path(data, "ramesh_maze.txt") as path:
     ramesh_maze = path
 
+with pkg_resources.path(data, "wide_path.txt") as path:
+    wide_path = path
 
 class DiscreteDefaultTwoRooms(DiscreteRoomEnvironment):
     """
@@ -451,3 +453,14 @@ class RameshMaze(DiscreteRoomEnvironment):
 
     def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(ramesh_maze, movement_penalty, goal_reward)
+
+
+class WidePath(DiscreteRoomEnvironment):
+    """
+    A single-room environment featuring a wide path from the starting state to the goal state.
+    Goal Reward: +1
+    Movement Penalty: -0.01
+    """
+
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
+        super().__init__(wide_path, movement_penalty, goal_reward)
