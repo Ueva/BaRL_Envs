@@ -1,6 +1,7 @@
 import copy
 import random
 import numpy as np
+from itertools import product
 
 from simpleoptions import TransitionMatrixBaseEnvironment
 
@@ -53,7 +54,10 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
         self.terminal_states = []
         for y in range(self.gridworld.shape[0]):
             for x in range(self.gridworld.shape[1]):
-                if CELL_TYPES_DICT[self.gridworld[y, x]] == "start":
+                if self.gridworld[y, x] not in CELL_TYPES_DICT:
+                    if not self.gridworld[y,x].isdigit():
+                        raise ValueError(f"Invalid cell type '{self.gridworld[y, x]}' in room template file.")
+                elif CELL_TYPES_DICT[self.gridworld[y, x]] == "start":
                     self.initial_states.append((y, x))
                 elif CELL_TYPES_DICT[self.gridworld[y, x]] == "goal":
                     self.terminal_states.append((y, x))
@@ -63,8 +67,12 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
         self.state_space = set()
         for y in range(self.gridworld.shape[0]):
             for x in range(self.gridworld.shape[1]):
-                if CELL_TYPES_DICT[self.gridworld[y, x]] != "wall":
+                if (self.gridworld[y, x] in CELL_TYPES_DICT and 
+                    CELL_TYPES_DICT[self.gridworld[y, x]] != "wall"):
                     self.state_space.add((y, x))
+                elif self.gridworld[y, x].isdigit():
+                    self.state_space.add((y, x))
+
 
     def reset(self, state=None):
         """
@@ -214,14 +222,19 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
                 next_state = (state[0], state[1] + 1)
             elif ACTIONS_DICT[action] == "LEFT":
                 next_state = (state[0], state[1] - 1)
-
-            if CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]] == "wall":
+            # if next state is a wall return to the current state
+            if (self.gridworld[next_state[0]][next_state[1]] in CELL_TYPES_DICT and
+                CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]] == "wall"):
                 next_state = (state[0], state[1])
-
+            
             if self.is_state_terminal(state=(next_state[0], next_state[1])):
                 reward = self.goal_reward
             else:
-                reward = self.movement_penalty
+                if (self.gridworld[next_state[0]][next_state[1]] not in CELL_TYPES_DICT and
+                    self.gridworld[next_state[0]][next_state[1]].isdigit()):
+                    reward = float(self.gridworld[next_state[0]][next_state[1]])
+                else:
+                    reward = self.movement_penalty
 
             successor_states.append(((next_state, reward), 1.0 / len(actions)))
 
@@ -391,6 +404,11 @@ with pkg_resources.path(data, "ramesh_maze.txt") as path:
 with pkg_resources.path(data, "wide_path.txt") as path:
     wide_path = path
 
+with pkg_resources.path(data, "basic_reward_room.txt") as path:
+    basic_reward_room = path
+
+with pkg_resources.path(data, "double_reward_room.txt") as path:
+    double_reward_room = path
 
 class DiscreteDefaultTwoRooms(DiscreteRoomEnvironment):
     """
@@ -566,9 +584,30 @@ class RameshMaze(DiscreteRoomEnvironment):
 class WidePath(DiscreteRoomEnvironment):
     """
     A single-room environment featuring a wide path from the starting state to the goal state.
+    """
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
+        super().__init__(wide_path, movement_penalty, goal_reward)
+
+
+class BasicRewardRoom(GoldDiscreteRoomEnvironment):
+    """
+    An 11x11 grid with start in the top left and goal in the bottom right.
+    The environment has an additional reward of 10 in the bottom left.
     Goal Reward: +1
     Movement Penalty: -0.01
     """
 
     def __init__(self, movement_penalty=-0.001, goal_reward=1):
-        super().__init__(wide_path, movement_penalty, goal_reward)
+        super().__init__(basic_reward_room, movement_penalty, goal_reward)
+
+
+class DoubleRewardRoom(GoldDiscreteRoomEnvironment):
+    """
+    An 11x11 grid with start in the top left and goal in the bottom right.
+    The environment has two additional rewards of 10 in the bottom left and top right.
+    Goal Reward: +1
+    Movement Penalty: -0.01
+    """
+
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
+        super().__init__(double_reward_room, movement_penalty, goal_reward)

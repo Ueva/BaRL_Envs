@@ -1,9 +1,8 @@
 import pytest
 
 import numpy as np
-import unittest
-
-from simpleenvs.envs.discrete_rooms import DiscreteXuFourRooms
+import unittest # unittest as standard library
+from simpleenvs.envs.discrete_rooms import DiscreteXuFourRooms, BasicRewardRoom, DoubleRewardRoom
 
 
 def test_reset():
@@ -225,6 +224,5 @@ class TestDoubleRewardRoom(unittest.TestCase):
             self.assertEqual(ns, s)
             state = ns
         self.assertTrue(self.env.is_state_terminal(state))
-
 if __name__ == '__main__':
     unittest.main()

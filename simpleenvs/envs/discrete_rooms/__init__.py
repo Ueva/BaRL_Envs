@@ -16,3 +16,5 @@ from simpleenvs.envs.discrete_rooms.rooms import ParrMaze
 from simpleenvs.envs.discrete_rooms.rooms import ParrMiniMaze
 from simpleenvs.envs.discrete_rooms.rooms import RameshMaze
 from simpleenvs.envs.discrete_rooms.rooms import WidePath
+from simpleenvs.envs.discrete_rooms.rooms import BasicRewardRoom
+from simpleenvs.envs.discrete_rooms.rooms import DoubleRewardRoom
