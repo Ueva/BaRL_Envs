@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="simpleenvs",
-    version="0.2.0",
+    version="0.2.1",
     author="Joshua Evans",
     author_email="jbe25@bath.ac.uk",
     description="A package which provides implementations of various reinforcement learning environments.",
@@ -38,6 +38,15 @@ setuptools.setup(
         (
             "pacman_files",
             ["simpleenvs/envs/grid_pacman/data/four_room.txt"],
+        ),
+        (
+            "taxi_renderer_resources",
+            [
+                "simpleenvs/renderers/taxi_renderer_resources/taxi_full.png",
+                "simpleenvs/renderers/taxi_renderer_resources/taxi_empty.png",
+                "simpleenvs/renderers/taxi_renderer_resources/passenger.png",
+                "simpleenvs/renderers/taxi_renderer_resources/goal_flag.png",
+            ],
         ),
     ],
     install_requires=[
