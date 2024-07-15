@@ -125,27 +125,15 @@ class TestBasicRewardRoom(unittest.TestCase):
         self.assertFalse(done)
 
     def test_expected_state_path(self):
+        """
+        Test that goes through an entire episode from start to gold to terminal state
+        """
         expected = [
-                (3,2),
-                (4,2),
-                (5,2),
-                (6,2),
-                (7,2),
-                (8,2),
-                (9,2),
-                (10,2,1),
-                (10,3,1),
-                (10,4,1),
-                (10,5,1),
-                (10,6,1),
-                (10,7,1),
-                (10,8,1),
-                (10,9,1),
-                (10,10,1)
+                (3,2), (4,2), (5,2), (6,2), (7,2), (8,2),
+                (9,2), (10,2,1), (10,3,1), (10,4,1), (10,5,1),
+                (10,6,1), (10,7,1), (10,8,1), (10,9,1), (10,10,1)
                 ]
-        actions = [
-                1,1,1,1,1,1,1,1,3,3,3,3,3,3,3,3
-                ]
+        actions = [ 1,1,1,1,1,1,1,1,3,3,3,3,3,3,3,3 ]
         state = self.env.reset()
         for s,a in zip(expected, actions):
             ns, _, _, _ = self.env.step(a)
@@ -153,6 +141,69 @@ class TestBasicRewardRoom(unittest.TestCase):
             state = ns
         self.assertTrue(self.env.is_state_terminal(state))
 
+
+class TestDoubleRewardRoom(unittest.TestCase):
+    """
+    Testing for the basic reward room.
+    The room is an 11x11 grid with the start in the top left, the reward in the 
+    bottom right and an extra reward to be picked up in the bottom left.
+
+    As result of the above, the room has 2 terminal states, (10,10) and (10,10,1).
+    The total number of states should also be double -1 (as the state to pick up 
+    the reward is present across both levels)
+    """
+    def setUp(self):
+        self.env = DoubleRewardRoom()
+
+    def test_information(self):
+        self.assertEqual(len(self.env.terminal_states), 4)
+        self.assertEqual(len(self.env.initial_states), 1)
+        self.assertIn((10,10), self.env.terminal_states)
+        self.assertIn((10,10,1), self.env.terminal_states)
+        self.assertIn((10,10,0,1), self.env.terminal_states)
+        self.assertIn((10,10,1,1), self.env.terminal_states)
+        self.assertIn((2,2), self.env.initial_states)
+
+
+    def test_expected_state_path(self):
+        """
+        Full episode test that collects both gold and visits terminal state
+        """
+        # go from start to bottom left to top right to bottom right
+        expected = [
+                (3,2), (4,2), (5,2), (6,2), (7,2), (8,2),
+                (9,2), (10,2,0,1), (10,3,0,1), (9,3,0,1), (9,4,0,1),
+                (8,4,0,1), (8,5,0,1), (7,5,0,1), (7,6,0,1), (6,6,0,1),
+                (6,7,0,1), (5,7,0,1), (5,8,0,1), (4,8,0,1), (4,9,0,1),
+                (3,9,0,1), (3,10,0,1), (2,10,1,1), (3,10,1,1), 
+                (4,10,1,1), (5,10,1,1), (6,10,1,1), (7,10,1,1),
+                (8,10,1,1), (9,10,1,1), (10,10,1,1)
+                ]
+        actions = [ 1,1,1,1,1,1,1,1,3,0,3,0,3,0,3,0,3,0,3,0,3,0,3,0,1,1,1,1,1,1,1,1 ]
+        state = self.env.reset()
+        for i,(s,a) in enumerate(zip(expected, actions)):
+            ns, _, _, _ = self.env.step(a)
+            self.assertEqual(ns, s)
+            state = ns
+        self.assertTrue(self.env.is_state_terminal(state))
+
+
+        # go from start to top right to bottom left to bottom right
+        expected = [
+                (2,3), (2,4), (2,5), (2,6), (2,7), (2,8), (2,9), (2,10,1),
+                (3,10,1), (3,9,1), (4,9,1), (4,8,1), (5,8,1), (5,7,1),
+                (6,7,1), (6,6,1), (7,6,1), (7,5,1), (8,5,1), (8,4,1),
+                (9,4,1), (9,3,1), (10,3,1), (10,2,1,1), (10,3,1,1),
+                (10,4,1,1), (10,5,1,1), (10,6,1,1), (10,7,1,1),
+                (10,8,1,1), (10,9,1,1), (10,10,1,1)
+                ]
+        actions = [ 3,3,3,3,3,3,3,3,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,3,3,3,3,3,3,3,3 ]
+        state = self.env.reset()
+        for i,(s,a) in enumerate(zip(expected, actions)):
+            ns, _, _, _ = self.env.step(a)
+            self.assertEqual(ns, s)
+            state = ns
+        self.assertTrue(self.env.is_state_terminal(state))
 
 if __name__ == '__main__':
     unittest.main()

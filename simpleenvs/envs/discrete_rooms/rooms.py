@@ -294,7 +294,8 @@ class GoldDiscreteRoomEnvironment(DiscreteRoomEnvironment):
         # get the index of the x,y position in the gold locations
         gold_index = self.gold_locations.index(position)
         if len(state) <= 2 + gold_index:
-            print(f"ERR:\tstate: {state}\tgold_index: {gold_index}")
+            # print(f"ERR:\tstate: {state}\tgold_index: {gold_index}")
+            return False
         return state[2 + gold_index] == 1
 
     def get_successors(self, state=None, actions=None):
