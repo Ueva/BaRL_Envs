@@ -227,6 +227,113 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
 
         return successor_states
 
+class GoldDiscreteRoomEnvironment(DiscreteRoomEnvironment):
+    def __init__(self, room_template_file_path, movement_penalty=-0.001, goal_reward=1.0):
+        self.basic_init = True
+        super().__init__(room_template_file_path, movement_penalty, goal_reward)
+        self.basic_init = False
+        self.positions = self.state_space
+        self.gold_locations = self.get_gold_locations()
+        self.state_space, self.terminal_states = self.adjust_for_gold(self.state_space,
+                                                                      self.terminal_states,
+                                                                      self.gold_locations)
+        self.transition_matrix = self._compute_transition_matrix()
+
+    def get_gold_locations(self):
+        return [(x,y) for x in range(self.gridworld.shape[0]) 
+                for y in range(self.gridworld.shape[1]) if self.gridworld[x,y].isdigit()]
+
+    def adjust_for_gold(self, state_space, terminal_states, gold_locations):
+        """
+        Given the number of gold positions, adjusts the state space and terminal states.
+        Increases the state space to include all possible combinations of gold collection states.
+        Removes the original gold positions from the state space.
+        Adds all combinations of the terminal states with different amounts of gold.
+        """
+        # Create a list of all possible combinations of gold collection states
+        num_golds = len(gold_locations)
+        gold_combinations = list(product([0, 1], repeat=num_golds))
+        
+        # Create the modified states array
+        modified_states = []
+        
+        for state in state_space:
+            for combination in gold_combinations:
+                modified_state = list(state) + list(combination)
+                while modified_state and modified_state[-1] == 0:
+                    modified_state.pop()
+                trimmed_state = tuple(modified_state)
+                modified_states.append(trimmed_state)
+                if state in terminal_states and trimmed_state not in terminal_states:
+                    terminal_states.append(trimmed_state)
+        
+        # remove the original gold positions from the state space
+        for gold in gold_locations:
+            modified_states.remove(gold)
+    
+        
+        return modified_states, terminal_states
+
+    def has_picked_up_gold(self, state):
+        position = (state[0], state[1])
+        if len(state) <= 2 or not hasattr(self, "gold_locations"):
+            return False
+        # get the index of the x,y position in the gold locations
+        gold_index = self.gold_locations.index(position)
+        if len(state) <= 2 + gold_index:
+            # print(f"ERR:\tstate: {state}\tgold_index: {gold_index}")
+            return False
+        return state[2 + gold_index] == 1
+
+    def get_successors(self, state=None, actions=None):
+        if self.basic_init: # if initial setup is being established, use the basic setup
+            return super().get_successors(state=state, actions=actions)
+        if state is None:
+            state = self.current_state
+
+        if actions is None:
+            actions = self.get_available_actions(state=state)
+
+        successor_states = []
+        for action in actions:
+            next_state = copy.deepcopy(state)
+            if ACTIONS_DICT[action] == "DOWN":
+                next_state = (state[0] + 1, state[1], *state[2:])
+            elif ACTIONS_DICT[action] == "UP":
+                next_state = (state[0] - 1, state[1], *state[2:])
+            elif ACTIONS_DICT[action] == "RIGHT":
+                next_state = (state[0], state[1] + 1, *state[2:])
+            elif ACTIONS_DICT[action] == "LEFT":
+                next_state = (state[0], state[1] - 1, *state[2:])
+            # if next state is a wall return to the current state
+            if (self.gridworld[next_state[0]][next_state[1]] in CELL_TYPES_DICT and
+                CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]] == "wall"):
+                next_state = (state[0], state[1], *state[2:])
+            
+            if self.is_state_terminal(state=(next_state[0], next_state[1])):
+                reward = self.goal_reward
+            else: # state is either a floor or a gold position
+                # if ns is a gold position and the gold has not been picked up
+                if (self.gridworld[next_state[0]][next_state[1]] not in CELL_TYPES_DICT and
+                    self.gridworld[next_state[0]][next_state[1]].isdigit() and
+                    not self.has_picked_up_gold(next_state)):
+                    # get the reward at that position
+                    reward = float(self.gridworld[next_state[0]][next_state[1]])
+                    # get the id of which gold it is
+                    gold_index = self.gold_locations.index(next_state[:2])
+                    next_state = list(next_state)
+                    # fill out the remainder of the state gold flags
+                    while len(next_state) < 2 + gold_index + 1:
+                        next_state.append(0)
+                    next_state[2 + gold_index] = 1
+                    next_state = tuple(next_state)
+                else:
+                    reward = self.movement_penalty
+
+            successor_states.append(((next_state, reward), 1.0 / len(actions)))
+
+        return successor_states
+
 
 # Import room template files.
 try:
