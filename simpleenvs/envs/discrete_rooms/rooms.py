@@ -2,7 +2,7 @@ import copy
 import random
 import numpy as np
 
-from simpleenvs.envs import TransitionMatrixBaseEnvironment
+from simpleoptions import TransitionMatrixBaseEnvironment
 
 from simpleenvs.renderers import RoomRenderer
 
