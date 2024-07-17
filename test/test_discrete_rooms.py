@@ -2,7 +2,7 @@ import pytest
 
 import numpy as np
 import unittest # unittest as standard library
-from simpleenvs.envs.discrete_rooms import DiscreteXuFourRooms, BasicRewardRoom, DoubleRewardRoom
+from simpleenvs.envs.discrete_rooms import DiscreteXuFourRooms, BasicRewardRoom, DoubleRewardRoom, BasicPenaltyRoom, DoublePenaltyRoom
 
 
 def test_reset():
@@ -59,7 +59,7 @@ class TestDiscreteXuFourRooms(unittest.TestCase):
         successors = self.env.get_successors((9,10))
         self.assertEqual(len(successors), 4)
         self.assertIn( (((8,10),-0.001),0.25), successors)
-        self.assertIn( (((10,10),1),0.25), successors)
+        self.assertIn( (((10,10),0.999),0.25), successors)
         self.assertIn( (((9,9),-0.001),0.25), successors)
         self.assertIn( (((9,11),-0.001),0.25), successors)
     
@@ -99,13 +99,13 @@ class TestBasicRewardRoom(unittest.TestCase):
         self.assertIn( (((2,3),-0.001),0.25), successors)
 
     def test_extended_state_space(self):
-        self.assertEqual(len(self.env.state_space), 241) # 11x11 grid x2 for gold -1 for overlap gold position
+        self.assertEqual(len(self.env.state_space), 241) # 11x11 grid x2 for item -1 for overlap item position
     
     def test_successor_reward(self):
         successors = self.env.get_successors((9,2))
         self.assertEqual(len(successors), 4)
         self.assertIn( (((8,2),-0.001),0.25), successors)
-        self.assertIn( (((10,2,1),10.0),0.25), successors)
+        self.assertIn( (((10,2,1),9.999),0.25), successors)
         self.assertIn( (((9,1),-0.001),0.25), successors)
         self.assertIn( (((9,3),-0.001),0.25), successors)
 
@@ -113,10 +113,10 @@ class TestBasicRewardRoom(unittest.TestCase):
         state = self.env.reset((9,2))
         state, reward, done, _ = self.env.step(1)
         self.assertEqual(state, (10,2,1))
-        self.assertEqual(reward, 10.0)
+        self.assertEqual(reward, 9.999)
         self.assertFalse(done)
 
-    def test_get_successors_gold(self):
+    def test_get_successors_item(self):
         s = self.env.get_successors((9,2,1))
         self.assertEqual(len(s), 4)
 
@@ -125,14 +125,14 @@ class TestBasicRewardRoom(unittest.TestCase):
         self.assertIn( (((9,1,1),-0.001),0.25), s)
         self.assertIn( (((9,3,1),-0.001),0.25), s)
 
-    def test_get_gold_locations(self):
-        self.assertEqual(self.env.get_gold_locations(), [(10,2)])
+    def test_get_item_locations(self):
+        self.assertEqual(self.env.get_item_locations(), [(10,2)])
 
     def test_return_to_collected_reward(self):
         state = self.env.reset((9,2))
         state, reward, done, _ = self.env.step(1)
         self.assertEqual(state, (10,2,1))
-        self.assertEqual(reward, 10.0)
+        self.assertEqual(reward, 9.999)
         self.assertFalse(done)
         # print(f"self.env.transition_matrix: {self.env.transition_matrix}")
         state, reward, done, _ = self.env.step(0)
@@ -146,7 +146,7 @@ class TestBasicRewardRoom(unittest.TestCase):
 
     def test_expected_state_path(self):
         """
-        Test that goes through an entire episode from start to gold to terminal state
+        Test that goes through an entire episode from start to item to terminal state
         """
         expected = [
                 (3,2), (4,2), (5,2), (6,2), (7,2), (8,2),
@@ -164,13 +164,15 @@ class TestBasicRewardRoom(unittest.TestCase):
 
 class TestDoubleRewardRoom(unittest.TestCase):
     """
-    Testing for the basic reward room.
-    The room is an 11x11 grid with the start in the top left, the reward in the 
-    bottom right and an extra reward to be picked up in the bottom left.
+    Testing for the double reward room
+    The room is an 11x11 grid with the start in the top left.
+    There are two additional rewards, one in the bottom left and one in the bottom right.
 
-    As result of the above, the room has 2 terminal states, (10,10) and (10,10,1).
-    The total number of states should also be double -1 (as the state to pick up 
-    the reward is present across both levels)
+    As result of the above, the room has 4 terminal states: 
+        (10,10)
+        (10,10,1)
+        (10,10,0,1)
+        (10,10,1,1)
     """
     def setUp(self):
         self.env = DoubleRewardRoom()
@@ -187,7 +189,7 @@ class TestDoubleRewardRoom(unittest.TestCase):
 
     def test_expected_state_path(self):
         """
-        Full episode test that collects both gold and visits terminal state
+        Full episode test that collects both item and visits terminal state
         """
         # go from start to bottom left to top right to bottom right
         expected = [
@@ -224,5 +226,86 @@ class TestDoubleRewardRoom(unittest.TestCase):
             self.assertEqual(ns, s)
             state = ns
         self.assertTrue(self.env.is_state_terminal(state))
+
+
+class TestBasicPenaltyRoom(unittest.TestCase):
+    def setUp(self):
+        self.env = BasicPenaltyRoom()
+
+    def test_standard_behaviour(self):
+        self.assertEqual(len(self.env.terminal_states), 2)
+
+    def test_extended_state_space(self):
+        self.assertEqual(len(self.env.state_space), 241) # 11x11 grid x2 for item -1 for overlap item position
+    
+    def test_successor_reward(self):
+        successors = self.env.get_successors((9,2))
+        self.assertEqual(len(successors), 4)
+        self.assertIn( (((8,2),-0.001),0.25), successors)
+        self.assertIn( (((10,2,1),-10.001),0.25), successors)
+        self.assertIn( (((9,1),-0.001),0.25), successors)
+        self.assertIn( (((9,3),-0.001),0.25), successors)
+
+    def test_collect_reward(self):
+        state = self.env.reset((9,2))
+        state, reward, done, _ = self.env.step(1)
+        self.assertEqual(state, (10,2,1))
+        self.assertEqual(reward, -10.001)
+        self.assertFalse(done)
+
+    def test_get_successors_item(self):
+        s = self.env.get_successors((9,2,1))
+        self.assertEqual(len(s), 4)
+
+        self.assertIn( (((10,2,1),-0.001),0.25), s) # should not pick up the reward again
+        self.assertIn( (((8,2,1),-0.001),0.25), s)
+        self.assertIn( (((9,1,1),-0.001),0.25), s)
+        self.assertIn( (((9,3,1),-0.001),0.25), s)
+
+    def test_get_item_locations(self):
+        self.assertEqual(self.env.get_item_locations(), [(10,2)])
+
+
+class TestDoublePenaltyRoom(unittest.TestCase):
+    """
+    Testing for the double penalty room
+    The room is an 11x11 grid with the start in the top left.
+    There are two penalties, one in the bottom left and one in the bottom right.
+
+    As result of the above, the room has 4 terminal states: 
+        (10,10)
+        (10,10,1)
+        (10,10,0,1)
+        (10,10,1,1)
+    """
+    def setUp(self):
+        self.env = DoublePenaltyRoom()
+
+    def test_information(self):
+        self.assertEqual(len(self.env.terminal_states), 4)
+        self.assertIn((10,10), self.env.terminal_states)
+        self.assertIn((10,10,1), self.env.terminal_states)
+        self.assertIn((10,10,0,1), self.env.terminal_states)
+        self.assertIn((10,10,1,1), self.env.terminal_states)
+
+    def test_pick_up_penalty(self):
+        successors = self.env.get_successors((9,2))
+        self.assertEqual(len(successors), 4)
+        self.assertIn( (((8,2),-0.001),0.25), successors)
+        self.assertIn( (((10,2,0,1),-10.001),0.25), successors)
+        self.assertIn( (((9,1),-0.001),0.25), successors)
+        self.assertIn( (((9,3),-0.001),0.25), successors)
+        state = self.env.reset(state=(9,2))
+        ns, r, _, _ = self.env.step(1)
+        self.assertEqual(ns, (10,2,0,1))
+        self.assertEqual(r, -10.001)
+        
+        # pick up the second penalty
+        state = self.env.reset(state=(2,9))
+        ns, r, _, _ = self.env.step(3)
+        self.assertEqual(ns, (2,10,1))
+        self.assertEqual(r, -10.001)
+
+
 if __name__ == '__main__':
     unittest.main()
