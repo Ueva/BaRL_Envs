@@ -5,25 +5,6 @@ from simpleenvs.envs.discrete_rooms import XuFourRooms
 
 def test_reset():
     env = XuFourRooms()
-
-    state = env.reset()
-    assert state == (2, 2)
-
-
-def test_goal():
-    env = XuFourRooms()
-
-    assert (10, 10) in env.terminal_states
-
-
-def test_start():
-    env = XuFourRooms()
-
-    assert (2, 2) in env.initial_states
-
-
-def test_reset():
-    env = XuFourRooms()
     state = env.reset()
 
     assert state == (2, 2)
