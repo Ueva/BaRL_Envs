@@ -285,7 +285,7 @@ with pkg_resources.path(data, "wide_path.txt") as path:
     wide_path = path
 
 
-class DiscreteDefaultTwoRooms(DiscreteRoomEnvironment):
+class TwoRooms(DiscreteRoomEnvironment):
     """
     A default two-rooms environment, as is commonly featured in the HRL literature.
     Goal Reward: +1
@@ -296,7 +296,7 @@ class DiscreteDefaultTwoRooms(DiscreteRoomEnvironment):
         super().__init__(default_two_room, movement_penalty, goal_reward)
 
 
-class DiscreteDefaultSixRooms(DiscreteRoomEnvironment):
+class SixRooms(DiscreteRoomEnvironment):
     """
     A default six-rooms environment, as is commonly featured in the HRL literature.
     Goal Reward: +1
@@ -307,7 +307,7 @@ class DiscreteDefaultSixRooms(DiscreteRoomEnvironment):
         super().__init__(default_six_room, movement_penalty, goal_reward)
 
 
-class DiscreteDefaultNineRooms(DiscreteRoomEnvironment):
+class NineRooms(DiscreteRoomEnvironment):
     """
     A default nine-rooms environment, as is commonly featured in the HRL literature.
     Goal Reward: +1
@@ -318,7 +318,7 @@ class DiscreteDefaultNineRooms(DiscreteRoomEnvironment):
         super().__init__(default_nine_room, movement_penalty, goal_reward)
 
 
-class DiscreteXuFourRooms(DiscreteRoomEnvironment):
+class XuFourRooms(DiscreteRoomEnvironment):
     """
     The four-room environment used in Xu X., Yang M. & Li G. 2019
     "Constructing Temporally Extended Actions through Incremental
