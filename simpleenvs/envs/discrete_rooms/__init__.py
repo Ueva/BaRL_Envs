@@ -1,3 +1,6 @@
+# Room cell and action type mappings.
+from simpleenvs.envs.discrete_rooms.rooms import CELL_TYPES_DICT, ACTIONS_DICT
+
 # Default Rooms
 from simpleenvs.envs.discrete_rooms.rooms import DiscreteRoomEnvironment
 from simpleenvs.envs.discrete_rooms.rooms import DiscreteDefaultTwoRooms
@@ -16,7 +19,10 @@ from simpleenvs.envs.discrete_rooms.rooms import ParrMaze
 from simpleenvs.envs.discrete_rooms.rooms import ParrMiniMaze
 from simpleenvs.envs.discrete_rooms.rooms import RameshMaze
 from simpleenvs.envs.discrete_rooms.rooms import WidePath
-from simpleenvs.envs.discrete_rooms.rooms import BasicRewardRoom
-from simpleenvs.envs.discrete_rooms.rooms import DoubleRewardRoom
-from simpleenvs.envs.discrete_rooms.rooms import BasicPenaltyRoom
-from simpleenvs.envs.discrete_rooms.rooms import DoublePenaltyRoom
+
+# Extra Items Rooms.
+from simpleenvs.envs.discrete_rooms.extra_items_rooms import ExtraItemsDiscreteRoomEnvironment
+from simpleenvs.envs.discrete_rooms.extra_items_rooms import BasicRewardRoom
+from simpleenvs.envs.discrete_rooms.extra_items_rooms import DoubleRewardRoom
+from simpleenvs.envs.discrete_rooms.extra_items_rooms import BasicPenaltyRoom
+from simpleenvs.envs.discrete_rooms.extra_items_rooms import DoublePenaltyRoom
