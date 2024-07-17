@@ -53,7 +53,10 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
         self.terminal_states = []
         for y in range(self.gridworld.shape[0]):
             for x in range(self.gridworld.shape[1]):
-                if CELL_TYPES_DICT[self.gridworld[y, x]] == "start":
+                if self.gridworld[y, x] not in CELL_TYPES_DICT:
+                    if not self.gridworld[y, x].replace("-", "", 1).isnumeric():
+                        raise ValueError(f"Invalid cell type '{self.gridworld[y, x]}' in room template file.")
+                elif CELL_TYPES_DICT[self.gridworld[y, x]] == "start":
                     self.initial_states.append((y, x))
                 elif CELL_TYPES_DICT[self.gridworld[y, x]] == "goal":
                     self.terminal_states.append((y, x))
@@ -63,7 +66,9 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
         self.state_space = set()
         for y in range(self.gridworld.shape[0]):
             for x in range(self.gridworld.shape[1]):
-                if CELL_TYPES_DICT[self.gridworld[y, x]] != "wall":
+                if self.gridworld[y, x] in CELL_TYPES_DICT and CELL_TYPES_DICT[self.gridworld[y, x]] != "wall":
+                    self.state_space.add((y, x))
+                elif self.gridworld[y, x].replace("-", "", 1).isnumeric():
                     self.state_space.add((y, x))
 
     def reset(self, state=None):
@@ -214,14 +219,23 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
                 next_state = (state[0], state[1] + 1)
             elif ACTIONS_DICT[action] == "LEFT":
                 next_state = (state[0], state[1] - 1)
-
-            if CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]] == "wall":
+            # if next state is a wall return to the current state
+            if (
+                self.gridworld[next_state[0]][next_state[1]] in CELL_TYPES_DICT
+                and CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]] == "wall"
+            ):
                 next_state = (state[0], state[1])
 
             if self.is_state_terminal(state=(next_state[0], next_state[1])):
-                reward = self.goal_reward
+                reward = self.goal_reward + self.movement_penalty
             else:
-                reward = self.movement_penalty
+                if (
+                    self.gridworld[next_state[0]][next_state[1]] not in CELL_TYPES_DICT
+                    and self.gridworld[next_state[0]][next_state[1]].replace("-", "", 1).isnumeric()
+                ):
+                    reward = float(self.gridworld[next_state[0]][next_state[1]]) + self.movement_penalty
+                else:
+                    reward = self.movement_penalty
 
             successor_states.append(((next_state, reward), 1.0 / len(actions)))
 
@@ -459,8 +473,6 @@ class RameshMaze(DiscreteRoomEnvironment):
 class WidePath(DiscreteRoomEnvironment):
     """
     A single-room environment featuring a wide path from the starting state to the goal state.
-    Goal Reward: +1
-    Movement Penalty: -0.01
     """
 
     def __init__(self, movement_penalty=-0.001, goal_reward=1):
