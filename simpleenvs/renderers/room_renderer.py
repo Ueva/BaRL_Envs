@@ -33,12 +33,17 @@ class RoomRenderer(object):
 
         # Initialise pygame and display window.
         pygame.init()
-        self.display_window = pygame.display.set_mode((self.width * TILESIZE, self.height * TILESIZE))
+        self.display_window = pygame.display.set_mode(
+            (self.width * TILESIZE, self.height * TILESIZE)
+        )
 
     def _update_room_layout(self, room_layout, start_state=None, goal_states=None):
         self.rooms = room_layout.tolist()
         for i in range(len(self.rooms)):
-            self.rooms[i] = [FLOOR if cell == START or cell == GOAL else cell for cell in self.rooms[i]]
+            self.rooms[i] = [
+                FLOOR if cell == START or cell == GOAL else cell
+                for cell in self.rooms[i]
+            ]
 
         self.height = len(room_layout)
         self.width = len(room_layout[0])

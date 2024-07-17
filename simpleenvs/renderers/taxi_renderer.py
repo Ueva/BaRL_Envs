@@ -56,7 +56,9 @@ class TaxiRenderer(object):
 
         # Initialise pygame and display window.
         pygame.init()
-        self.display_window = pygame.display.set_mode((WIDTH * TILESIZE, HEIGHT * TILESIZE))
+        self.display_window = pygame.display.set_mode(
+            (WIDTH * TILESIZE, HEIGHT * TILESIZE)
+        )
 
         # Load textures.
         self.taxi_full_texture = pygame.transform.scale(
@@ -97,21 +99,36 @@ class TaxiRenderer(object):
         pygame.draw.rect(
             self.display_window,
             BLACK,
-            (1 * TILESIZE - 0.05 * TILESIZE, (HEIGHT - 1 - 1) * TILESIZE, 0.1 * TILESIZE, 2 * TILESIZE),
+            (
+                1 * TILESIZE - 0.05 * TILESIZE,
+                (HEIGHT - 1 - 1) * TILESIZE,
+                0.1 * TILESIZE,
+                2 * TILESIZE,
+            ),
         )
 
         # Draw centre wall.
         pygame.draw.rect(
             self.display_window,
             BLACK,
-            (2 * TILESIZE - 0.05 * TILESIZE, (HEIGHT - 4 - 1) * TILESIZE, 0.1 * TILESIZE, 2 * TILESIZE),
+            (
+                2 * TILESIZE - 0.05 * TILESIZE,
+                (HEIGHT - 4 - 1) * TILESIZE,
+                0.1 * TILESIZE,
+                2 * TILESIZE,
+            ),
         )
 
         # Draw rightmost wall.
         pygame.draw.rect(
             self.display_window,
             BLACK,
-            (3 * TILESIZE - 0.05 * TILESIZE, (HEIGHT - 1 - 1) * TILESIZE, 0.1 * TILESIZE, 2 * TILESIZE),
+            (
+                3 * TILESIZE - 0.05 * TILESIZE,
+                (HEIGHT - 1 - 1) * TILESIZE,
+                0.1 * TILESIZE,
+                2 * TILESIZE,
+            ),
         )
 
         # Decompose state.
@@ -120,20 +137,32 @@ class TaxiRenderer(object):
         # Draw the taxi.
         taxi_x, taxi_y = self._number_to_coords(taxi_position)
         if TAXI_RANKS[passenger_position] == -1:
-            self.display_window.blit(self.taxi_full_texture, (taxi_x * TILESIZE, (HEIGHT - taxi_y - 1) * TILESIZE))
+            self.display_window.blit(
+                self.taxi_full_texture,
+                (taxi_x * TILESIZE, (HEIGHT - taxi_y - 1) * TILESIZE),
+            )
         else:
-            self.display_window.blit(self.taxi_empty_texture, (taxi_x * TILESIZE, (HEIGHT - taxi_y - 1) * TILESIZE))
+            self.display_window.blit(
+                self.taxi_empty_texture,
+                (taxi_x * TILESIZE, (HEIGHT - taxi_y - 1) * TILESIZE),
+            )
 
         # Draw the passenger.
         if TAXI_RANKS[passenger_position] != -1:
-            passenger_x, passenger_y = self._number_to_coords(TAXI_RANKS[passenger_position])
+            passenger_x, passenger_y = self._number_to_coords(
+                TAXI_RANKS[passenger_position]
+            )
             self.display_window.blit(
-                self.passenger_texture, (passenger_x * TILESIZE, (HEIGHT - passenger_y - 1) * TILESIZE)
+                self.passenger_texture,
+                (passenger_x * TILESIZE, (HEIGHT - passenger_y - 1) * TILESIZE),
             )
 
         # Draw the goal flag.
         goal_x, goal_y = self._number_to_coords(TAXI_RANKS[destination_position])
-        self.display_window.blit(self.goal_flag_texture, (goal_x * TILESIZE, (HEIGHT - goal_y - 1) * TILESIZE))
+        self.display_window.blit(
+            self.goal_flag_texture,
+            (goal_x * TILESIZE, (HEIGHT - goal_y - 1) * TILESIZE),
+        )
 
         # Update the display.
         pygame.display.update()

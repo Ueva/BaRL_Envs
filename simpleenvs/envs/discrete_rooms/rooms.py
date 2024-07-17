@@ -57,7 +57,7 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
         for y in range(self.gridworld.shape[0]):
             for x in range(self.gridworld.shape[1]):
                 if self.gridworld[y, x] not in CELL_TYPES_DICT:
-                    if not self.gridworld[y,x].replace('-', '', 1).isnumeric():
+                    if not self.gridworld[y, x].replace("-", "", 1).isnumeric():
                         raise ValueError(
                             f"Invalid cell type '{self.gridworld[y, x]}' in room template file."
                         )
@@ -76,7 +76,7 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
                     and CELL_TYPES_DICT[self.gridworld[y, x]] != "wall"
                 ):
                     self.state_space.add((y, x))
-                elif self.gridworld[y,x].replace('-', '', 1).isnumeric():
+                elif self.gridworld[y, x].replace("-", "", 1).isnumeric():
                     self.state_space.add((y, x))
 
     def reset(self, state=None):
@@ -242,9 +242,14 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
             else:
                 if (
                     self.gridworld[next_state[0]][next_state[1]] not in CELL_TYPES_DICT
-                    and self.gridworld[next_state[0]][next_state[1]].replace('-', '', 1).isnumeric()
+                    and self.gridworld[next_state[0]][next_state[1]]
+                    .replace("-", "", 1)
+                    .isnumeric()
                 ):
-                    reward = float(self.gridworld[next_state[0]][next_state[1]]) + self.movement_penalty
+                    reward = (
+                        float(self.gridworld[next_state[0]][next_state[1]])
+                        + self.movement_penalty
+                    )
                 else:
                     reward = self.movement_penalty
 
@@ -255,8 +260,11 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
 
 class ExtraItemsDiscreteRoomEnvironment(DiscreteRoomEnvironment):
     def __init__(
-        self, room_template_file_path, movement_penalty=-0.001, goal_reward=1.0,
-        persistent_items=False, # Whether the additional items are persistent or consumed upon collection
+        self,
+        room_template_file_path,
+        movement_penalty=-0.001,
+        goal_reward=1.0,
+        persistent_items=False,  # Whether the additional items are persistent or consumed upon collection
     ):
         self.basic_init = True
         super().__init__(room_template_file_path, movement_penalty, goal_reward)
@@ -275,7 +283,7 @@ class ExtraItemsDiscreteRoomEnvironment(DiscreteRoomEnvironment):
             (x, y)
             for x in range(self.gridworld.shape[0])
             for y in range(self.gridworld.shape[1])
-            if self.gridworld[x, y].replace('-', '', 1).isnumeric()
+            if self.gridworld[x, y].replace("-", "", 1).isnumeric()
         ]
 
     def adjust_for_item(self, state_space, terminal_states, item_locations):
@@ -357,7 +365,9 @@ class ExtraItemsDiscreteRoomEnvironment(DiscreteRoomEnvironment):
                 # if ns is a item position and the item has not been picked up
                 if (
                     self.gridworld[next_state[0]][next_state[1]] not in CELL_TYPES_DICT
-                    and self.gridworld[next_state[0]][next_state[1]].replace('-', '', 1).isnumeric()
+                    and self.gridworld[next_state[0]][next_state[1]]
+                    .replace("-", "", 1)
+                    .isnumeric()
                     and not self.has_picked_up_item(next_state)
                 ):
                     # get the reward at that position
@@ -376,7 +386,6 @@ class ExtraItemsDiscreteRoomEnvironment(DiscreteRoomEnvironment):
                         next_state = tuple(next_state)
                 else:
                     reward = self.movement_penalty
-
 
             successor_states.append(((next_state, reward), 1.0 / len(actions)))
 
@@ -453,6 +462,7 @@ with pkg_resources.path(data, "double_penalty_room.txt") as path:
 
 with pkg_resources.path(data, "four_rooms_firewall.txt") as path:
     four_rooms_firewall = path
+
 
 class DiscreteDefaultTwoRooms(DiscreteRoomEnvironment):
     """
@@ -694,4 +704,6 @@ class FourRoomsFireWall(ExtraItemsDiscreteRoomEnvironment):
     """
 
     def __init__(self, movement_penalty=-0.001, goal_reward=1):
-        super().__init__(four_rooms_firewall, movement_penalty, goal_reward, persistent_items=True)
+        super().__init__(
+            four_rooms_firewall, movement_penalty, goal_reward, persistent_items=True
+        )
