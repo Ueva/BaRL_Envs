@@ -2,7 +2,14 @@ import pytest
 
 import numpy as np
 import unittest # unittest as standard library
-from simpleenvs.envs.discrete_rooms import DiscreteXuFourRooms, BasicRewardRoom, DoubleRewardRoom, BasicPenaltyRoom, DoublePenaltyRoom
+from simpleenvs.envs.discrete_rooms import (
+        DiscreteXuFourRooms, 
+        BasicRewardRoom, 
+        DoubleRewardRoom, 
+        BasicPenaltyRoom, 
+        DoublePenaltyRoom,
+        FourRoomsFireWall
+)
 
 
 def test_reset():
@@ -305,6 +312,55 @@ class TestDoublePenaltyRoom(unittest.TestCase):
         ns, r, _, _ = self.env.step(3)
         self.assertEqual(ns, (2,10,1))
         self.assertEqual(r, -10.001)
+
+
+class TestPersistentPenaltyRoom(unittest.TestCase):
+    """
+    Testing for the double penalty room
+    The room is an 11x11 grid with the start in the top left.
+    There are two penalties, one in the bottom left and one in the bottom right.
+
+    As result of the above, the room has 4 terminal states: 
+        (10,10)
+        (10,10,1)
+        (10,10,0,1)
+        (10,10,1,1)
+    """
+    def setUp(self):
+        self.env = FourRoomsFireWall()
+
+    def test_information(self):
+        self.assertEqual(len(self.env.terminal_states), 1)
+        self.assertIn((10,10), self.env.terminal_states)
+
+    def test_persistent_penalty(self):
+        successors = self.env.get_successors((2,6))
+        self.assertEqual(len(successors), 4)
+        self.assertIn( (((1,6),-0.001),0.25), successors)
+        self.assertIn( (((3,6),-0.001),0.25), successors)
+        self.assertIn( (((2,7),-50.001),0.25), successors)
+        self.assertIn( (((2,5),-0.001),0.25), successors)
+
+        successors = self.env.get_successors((5,6))
+        self.assertIn( (((4,6),-0.001),0.25), successors)
+        self.assertIn( (((6,6),-50.001),0.25), successors)
+        self.assertIn( (((5,7),-50.001),0.25), successors)
+        self.assertIn( (((5,5),-0.001),0.25), successors)
+
+        
+        # visit the penalty
+        state = self.env.reset(state=(2,6))
+        ns, r, _, _ = self.env.step(3)
+        self.assertEqual(ns, (2,7))
+        self.assertEqual(r, -50.001)
+        # move back up
+        ns, r, _, _ = self.env.step(2)
+        self.assertEqual(ns, (2,6))
+        self.assertEqual(r, -0.001)
+        # go back to penalty
+        ns, r, _, _ = self.env.step(3)
+        self.assertEqual(ns, (2,7))
+        self.assertEqual(r, -50.001)
 
 
 if __name__ == '__main__':

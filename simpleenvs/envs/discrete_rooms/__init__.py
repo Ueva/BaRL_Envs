@@ -20,3 +20,4 @@ from simpleenvs.envs.discrete_rooms.rooms import BasicRewardRoom
 from simpleenvs.envs.discrete_rooms.rooms import DoubleRewardRoom
 from simpleenvs.envs.discrete_rooms.rooms import BasicPenaltyRoom
 from simpleenvs.envs.discrete_rooms.rooms import DoublePenaltyRoom
+from simpleenvs.envs.discrete_rooms.rooms import FourRoomsFireWall
