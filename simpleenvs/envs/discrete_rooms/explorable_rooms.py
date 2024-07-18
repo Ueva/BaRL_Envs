@@ -3,6 +3,28 @@ import numpy as np
 from simpleenvs.envs.discrete_rooms import DiscreteRoomEnvironment
 from simpleenvs.envs.discrete_rooms.rooms import CELL_TYPES_DICT
 
+# Import room template files.
+from importlib.resources import files
+
+from . import data
+
+default_two_room = files(data).joinpath("two_rooms.txt")
+default_six_room = files(data).joinpath("six_rooms.txt")
+default_nine_room = files(data).joinpath("nine_rooms.txt")
+xu_four_room = files(data).joinpath("xu_four_rooms.txt")
+bridge_room = files(data).joinpath("bridge_room.txt")
+cage_room = files(data).joinpath("cage_room.txt")
+empty_room = files(data).joinpath("empty_room.txt")
+small_rooms = files(data).joinpath("small_rooms.txt")
+four_rooms = files(data).joinpath("four_rooms.txt")
+four_rooms_holes = files(data).joinpath("four_rooms_holes.txt")
+maze_rooms = files(data).joinpath("maze_rooms.txt")
+spiral_rooms = files(data).joinpath("spiral_room.txt")
+parr_maze = files(data).joinpath("parr_maze.txt")
+parr_mini_maze = files(data).joinpath("parr_mini_maze.txt")
+ramesh_maze = files(data).joinpath("ramesh_maze.txt")
+wide_path = files(data).joinpath("wide_path.txt")
+
 
 class DiscreteExplorableRoomEnvironment(DiscreteRoomEnvironment):
     def __init__(self, *args, **kwargs):
@@ -38,63 +60,6 @@ class DiscreteExplorableRoomEnvironment(DiscreteRoomEnvironment):
 
     def is_state_terminal(self, state=None):
         return False
-
-
-# Import room template files.
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    import importlib_resources as pkg_resources
-
-from . import data
-
-with pkg_resources.path(data, "two_rooms.txt") as path:
-    default_two_room = path
-
-with pkg_resources.path(data, "six_rooms.txt") as path:
-    default_six_room = path
-
-with pkg_resources.path(data, "nine_rooms.txt") as path:
-    default_nine_room = path
-
-with pkg_resources.path(data, "xu_four_rooms.txt") as path:
-    xu_four_room = path
-
-with pkg_resources.path(data, "bridge_room.txt") as path:
-    bridge_room = path
-
-with pkg_resources.path(data, "cage_room.txt") as path:
-    cage_room = path
-
-with pkg_resources.path(data, "empty_room.txt") as path:
-    empty_room = path
-
-with pkg_resources.path(data, "small_rooms.txt") as path:
-    small_rooms = path
-
-with pkg_resources.path(data, "four_rooms.txt") as path:
-    four_rooms = path
-
-with pkg_resources.path(data, "four_rooms_holes.txt") as path:
-    four_rooms_holes = path
-
-with pkg_resources.path(data, "maze_rooms.txt") as path:
-    maze_rooms = path
-
-with pkg_resources.path(data, "spiral_room.txt") as path:
-    spiral_rooms = path
-
-with pkg_resources.path(data, "parr_maze.txt") as path:
-    parr_maze = path
-
-with pkg_resources.path(data, "parr_mini_maze.txt") as path:
-    parr_mini_maze = path
-
-with pkg_resources.path(data, "ramesh_maze.txt") as path:
-    ramesh_maze = path
-
-with pkg_resources.path(data, "wide_path.txt") as path:
-    wide_path = path
 
 
 class ExplorableTwoRooms(DiscreteExplorableRoomEnvironment):

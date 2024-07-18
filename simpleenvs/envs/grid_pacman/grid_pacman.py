@@ -6,19 +6,13 @@ import networkx as nx
 
 from simpleenvs.renderers import GridPacManRenderer
 
-# Import room template files.
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    import importlib_resources as pkg_resources
 
 from . import data
 
-with pkg_resources.path(data, "four_room.txt") as path:
-    four_room_layout = path
+# Import room template files.
+from importlib.resources import files
 
-# with pkg_resources.path(data, "classic.txt") as path:
-#     classic_layout = path
+four_room_layout = files(data).joinpath("four_room.txt")
 
 CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent", "X": "ghost"}
 

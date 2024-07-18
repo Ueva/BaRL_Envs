@@ -136,28 +136,16 @@ class ExtraItemsDiscreteRoomEnvironment(DiscreteRoomEnvironment):
 
 
 # Import room template files.
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    import importlib_resources as pkg_resources
+from importlib.resources import files
 
 from . import data
 
 
-with pkg_resources.path(data, "basic_reward_room.txt") as path:
-    basic_reward_room = path
-
-with pkg_resources.path(data, "double_reward_room.txt") as path:
-    double_reward_room = path
-
-with pkg_resources.path(data, "basic_penalty_room.txt") as path:
-    basic_penalty_room = path
-
-with pkg_resources.path(data, "double_penalty_room.txt") as path:
-    double_penalty_room = path
-
-with pkg_resources.path(data, "four_rooms_firewall.txt") as path:
-    four_rooms_firewall = path
+basic_reward_room = files(data).joinpath("basic_reward_room.txt")
+double_reward_room = files(data).joinpath("double_reward_room.txt")
+basic_penalty_room = files(data).joinpath("basic_penalty_room.txt")
+double_penalty_room = files(data).joinpath("double_penalty_room.txt")
+four_rooms_firewall = files(data).joinpath("four_rooms_firewall.txt")
 
 
 class BasicRewardRoom(ExtraItemsDiscreteRoomEnvironment):

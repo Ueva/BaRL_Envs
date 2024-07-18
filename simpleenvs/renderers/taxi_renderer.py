@@ -30,25 +30,15 @@ LOCATIONS = {
 
 TAXI_RANKS = [0, 3, 20, 24, -1]
 
-# Import texture files.
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    import importlib_resources as pkg_resources
+# # Import texture files.
+from importlib.resources import files
 
 from . import taxi_renderer_resources
 
-with pkg_resources.path(taxi_renderer_resources, "taxi_full.png") as path:
-    taxi_full_path = path
-
-with pkg_resources.path(taxi_renderer_resources, "taxi_empty.png") as path:
-    taxi_empty_path = path
-
-with pkg_resources.path(taxi_renderer_resources, "passenger.png") as path:
-    passenger_path = path
-
-with pkg_resources.path(taxi_renderer_resources, "goal_flag.png") as path:
-    goal_flag_path = path
+taxi_full_path = files(taxi_renderer_resources).joinpath("taxi_full.png")
+taxi_empty_path = files(taxi_renderer_resources).joinpath("taxi_empty.png")
+passenger_path = files(taxi_renderer_resources).joinpath("passenger.png")
+goal_flag_path = files(taxi_renderer_resources).joinpath("goal_flag.png")
 
 
 class TaxiRenderer(object):
