@@ -74,22 +74,13 @@ class PlayroomEnvironment(TransitionMatrixBaseEnvironment):
             initial_eye_item = random.randint(0, 3)
             initial_hand_item = random.randint(0, 3)
             initial_marker_item = random.randint(0, 3)
-            self.current_state = (
-                initial_eye_item,
-                initial_hand_item,
-                initial_marker_item,
-                False,
-                False,
-                False,
-            )
+            self.current_state = (initial_eye_item, initial_hand_item, initial_marker_item, False, False, False)
 
         return copy.deepcopy(self.current_state)
 
     def step(self, action, state=None):
         if state is None:
-            next_state, reward, terminal, info = super().step(
-                action, state=self.current_state
-            )
+            next_state, reward, terminal, info = super().step(action, state=self.current_state)
         else:
             next_state, reward, terminal, info = super().step(action, state=state)
 
@@ -175,198 +166,63 @@ class PlayroomEnvironment(TransitionMatrixBaseEnvironment):
             if INDEX_TO_ACTION[action] == "RANDOM_LOOK":
                 items = [0, 1, 2, 3]
                 for item in items:
-                    successors.append(
-                        (
-                            (
-                                (item, hand_item, marker_item, light, music, bell),
-                                -0.001,
-                            ),
-                            1.0 / len(items),
-                        )
-                    )
+                    successors.append((((item, hand_item, marker_item, light, music, bell), -0.001), 1.0 / len(items)))
             # 1 - Move Hand to Eye.
             elif INDEX_TO_ACTION[action] == "HAND_TO_EYE":
                 # Succeeds with probability 0.75.
-                successors.append(
-                    (
-                        ((eye_item, eye_item, marker_item, light, music, bell), -0.001),
-                        0.75,
-                    )
-                )
+                successors.append((((eye_item, eye_item, marker_item, light, music, bell), -0.001), 0.75))
 
                 # Has no effect with probability 0.25.
-                successors.append(
-                    (
-                        (
-                            (eye_item, hand_item, marker_item, light, music, bell),
-                            -0.001,
-                        ),
-                        0.25,
-                    )
-                )
+                successors.append((((eye_item, hand_item, marker_item, light, music, bell), -0.001), 0.25))
 
             # 2 - Move Marker to Eye,
             elif INDEX_TO_ACTION[action] == "MARKER_TO_EYE":
                 # Succeeds with probability 0.75.
-                successors.append(
-                    (
-                        ((eye_item, hand_item, eye_item, light, music, bell), -0.001),
-                        0.75,
-                    )
-                )
+                successors.append((((eye_item, hand_item, eye_item, light, music, bell), -0.001), 0.75))
 
                 # Has no effect with probability 0.25.
-                successors.append(
-                    (
-                        (
-                            (eye_item, hand_item, marker_item, light, music, bell),
-                            -0.001,
-                        ),
-                        0.25,
-                    )
-                )
+                successors.append((((eye_item, hand_item, marker_item, light, music, bell), -0.001), 0.25))
 
             # 3 -  Move Eye to Hand.
             elif INDEX_TO_ACTION[action] == "EYE_TO_HAND":
-                successors.append(
-                    (
-                        (
-                            (hand_item, hand_item, marker_item, light, music, bell),
-                            -0.001,
-                        ),
-                        1.0,
-                    )
-                )
+                successors.append((((hand_item, hand_item, marker_item, light, music, bell), -0.001), 1.0))
 
             # 4 -  Move Eye to Marker.
             elif INDEX_TO_ACTION[action] == "EYE_TO_MARKER":
                 eye_item = marker_item
 
                 # Succeeds with probability 0.75.
-                successors.append(
-                    (
-                        (
-                            (marker_item, hand_item, marker_item, light, music, bell),
-                            -0.001,
-                        ),
-                        0.75,
-                    )
-                )
+                successors.append((((marker_item, hand_item, marker_item, light, music, bell), -0.001), 0.75))
 
                 # Has no effect with probability 0.25.
-                successors.append(
-                    (
-                        (
-                            (eye_item, hand_item, marker_item, light, music, bell),
-                            -0.001,
-                        ),
-                        0.25,
-                    )
-                )
+                successors.append((((eye_item, hand_item, marker_item, light, music, bell), -0.001), 0.25))
 
             # 5 - Interact with Item.
             elif INDEX_TO_ACTION[action] == "INTERACT":
                 # If Eye and Hand are on Light Switch, toggle Light.
-                if (
-                    INDEX_TO_ITEM[eye_item] == "LIGHT_SWITCH"
-                    and INDEX_TO_ITEM[hand_item] == "LIGHT_SWITCH"
-                ):
+                if INDEX_TO_ITEM[eye_item] == "LIGHT_SWITCH" and INDEX_TO_ITEM[hand_item] == "LIGHT_SWITCH":
                     # Succeeds with probability 0.75.
-                    successors.append(
-                        (
-                            (
-                                (
-                                    eye_item,
-                                    hand_item,
-                                    marker_item,
-                                    not light,
-                                    music,
-                                    bell,
-                                ),
-                                -0.001,
-                            ),
-                            0.75,
-                        )
-                    )
+                    successors.append((((eye_item, hand_item, marker_item, not light, music, bell), -0.001), 0.75))
 
                     # Has no effect with probability 0.25.
-                    successors.append(
-                        (
-                            (
-                                (eye_item, hand_item, marker_item, light, music, bell),
-                                -0.001,
-                            ),
-                            0.25,
-                        )
-                    )
+                    successors.append((((eye_item, hand_item, marker_item, light, music, bell), -0.001), 0.25))
 
                 # If Eye and Hand are on Music Switch...
-                elif (
-                    INDEX_TO_ITEM[eye_item] == "MUSIC_SWITCH"
-                    and INDEX_TO_ITEM[hand_item] == "MUSIC_SWITCH"
-                ):
+                elif INDEX_TO_ITEM[eye_item] == "MUSIC_SWITCH" and INDEX_TO_ITEM[hand_item] == "MUSIC_SWITCH":
                     # ...and the Light is On, toggle Music.
                     if light:
                         # Succeeds with probability 0.75.
-                        successors.append(
-                            (
-                                (
-                                    (
-                                        eye_item,
-                                        hand_item,
-                                        marker_item,
-                                        light,
-                                        not music,
-                                        bell,
-                                    ),
-                                    -0.001,
-                                ),
-                                0.75,
-                            )
-                        )
+                        successors.append((((eye_item, hand_item, marker_item, light, not music, bell), -0.001), 0.75))
 
                         # Has no effect with probability 0.25.
-                        successors.append(
-                            (
-                                (
-                                    (
-                                        eye_item,
-                                        hand_item,
-                                        marker_item,
-                                        light,
-                                        music,
-                                        bell,
-                                    ),
-                                    -0.001,
-                                ),
-                                0.25,
-                            )
-                        )
+                        successors.append((((eye_item, hand_item, marker_item, light, music, bell), -0.001), 0.25))
 
                     # Otherwise, the Music Switch does nothing.
                     else:
-                        successors.append(
-                            (
-                                (
-                                    (
-                                        eye_item,
-                                        hand_item,
-                                        marker_item,
-                                        light,
-                                        music,
-                                        bell,
-                                    ),
-                                    -0.001,
-                                ),
-                                1.0,
-                            )
-                        )
+                        successors.append((((eye_item, hand_item, marker_item, light, music, bell), -0.001), 1.0))
                 # If the Eye and Hand are on the Ball, kick the ball at the Marker.
                 # If the Marker is currently on the Bell, ring the Bell.
-                elif (
-                    INDEX_TO_ITEM[eye_item] == "BALL"
-                    and INDEX_TO_ITEM[hand_item] == "BALL"
-                ):
+                elif INDEX_TO_ITEM[eye_item] == "BALL" and INDEX_TO_ITEM[hand_item] == "BALL":
                     if INDEX_TO_ITEM[marker_item] == "BELL":
 
                         # Succeeds with probability 0.75.
@@ -374,93 +230,24 @@ class PlayroomEnvironment(TransitionMatrixBaseEnvironment):
                         # the agent earns a reward of 1.0, and the episode ends.
                         if music:
                             successors.append(
-                                (
-                                    (
-                                        (
-                                            eye_item,
-                                            hand_item,
-                                            ITEM_TO_INDEX["BALL"],
-                                            light,
-                                            music,
-                                            True,
-                                        ),
-                                        1.0,
-                                    ),
-                                    0.75,
-                                )
+                                (((eye_item, hand_item, ITEM_TO_INDEX["BALL"], light, music, True), 1.0), 0.75)
                             )
                         # Otherwise, the agent earns a reward of -0.001 and the episode continues.
                         else:
                             successors.append(
-                                (
-                                    (
-                                        (
-                                            eye_item,
-                                            hand_item,
-                                            ITEM_TO_INDEX["BALL"],
-                                            light,
-                                            music,
-                                            True,
-                                        ),
-                                        -0.001,
-                                    ),
-                                    0.75,
-                                )
+                                (((eye_item, hand_item, ITEM_TO_INDEX["BALL"], light, music, True), -0.001), 0.75)
                             )
 
                         # Has no effect with probability 0.25.
-                        successors.append(
-                            (
-                                (
-                                    (
-                                        eye_item,
-                                        hand_item,
-                                        marker_item,
-                                        light,
-                                        music,
-                                        bell,
-                                    ),
-                                    -0.001,
-                                ),
-                                0.25,
-                            )
-                        )
+                        successors.append((((eye_item, hand_item, marker_item, light, music, bell), -0.001), 0.25))
                     else:
                         # Succeeds with probability 0.75.
                         successors.append(
-                            (
-                                (
-                                    (
-                                        eye_item,
-                                        hand_item,
-                                        ITEM_TO_INDEX["BALL"],
-                                        light,
-                                        music,
-                                        bell,
-                                    ),
-                                    -0.001,
-                                ),
-                                0.75,
-                            )
+                            (((eye_item, hand_item, ITEM_TO_INDEX["BALL"], light, music, bell), -0.001), 0.75)
                         )
 
                         # Has no effect with probability 0.25.
-                        successors.append(
-                            (
-                                (
-                                    (
-                                        eye_item,
-                                        hand_item,
-                                        marker_item,
-                                        light,
-                                        music,
-                                        bell,
-                                    ),
-                                    -0.001,
-                                ),
-                                0.25,
-                            )
-                        )
+                        successors.append((((eye_item, hand_item, marker_item, light, music, bell), -0.001), 0.25))
 
         return reduce_prob_tuples(successors)
 

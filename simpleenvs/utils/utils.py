@@ -3,9 +3,7 @@ from typing import List, Tuple, Hashable
 from numbers import Number
 
 
-def reduce_prob_tuples(
-    tuple_list: List[Tuple[Hashable, Number]]
-) -> List[Tuple[Hashable, Number]]:
+def reduce_prob_tuples(tuple_list: List[Tuple[Hashable, Number]]) -> List[Tuple[Hashable, Number]]:
     """
     Takes a list of tuples of the form (element, probability), and merges any duplicate elements by summing their probabilities.
 

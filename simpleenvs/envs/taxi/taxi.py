@@ -39,18 +39,14 @@ class TaxiEnvironment(TransitionMatrixBaseEnvironment):
             self.current_state = copy.deepcopy(next(self.initial_states_order))
         # Else, randomly sample an initial state.
         else:
-            self.current_state = copy.deepcopy(
-                random.sample(self.get_initial_states(), 1)[0]
-            )
+            self.current_state = copy.deepcopy(random.sample(self.get_initial_states(), 1)[0])
 
         self.terminal = False
         return self.current_state
 
     def step(self, action, state=None):
         if state is None:
-            next_state, reward, terminal, info = super().step(
-                action, state=self.current_state
-            )
+            next_state, reward, terminal, info = super().step(action, state=self.current_state)
         else:
             next_state, reward, terminal, info = super().step(action, state=state)
 
@@ -160,9 +156,7 @@ class TaxiEnvironment(TransitionMatrixBaseEnvironment):
             for source_square in range(4):
                 for destination_square in range(4):
                     if source_square != destination_square:
-                        initial_states.append(
-                            (start_square, source_square, destination_square)
-                        )
+                        initial_states.append((start_square, source_square, destination_square))
 
         # Only return initial states where the passenger does not start on its destination square.
         return initial_states
@@ -233,9 +227,7 @@ class TaxiEnvironment(TransitionMatrixBaseEnvironment):
                     reward += -0.001
 
             taxi_pos = self._coords_to_number(taxi_x, taxi_y)
-            successor_states.append(
-                (((taxi_pos, passenger_pos, goal_pos), reward), 1.0 / len(actions))
-            )
+            successor_states.append((((taxi_pos, passenger_pos, goal_pos), reward), 1.0 / len(actions)))
 
         return successor_states
 

@@ -28,9 +28,7 @@ class HanoiEnvironment(TransitionMatrixBaseEnvironment):
 
         # Initialise state and action mappings.
         self.action_list = list(itertools.permutations(list(range(self.num_poles)), 2))
-        self.state_list = list(
-            itertools.product(list(range(self.num_poles)), repeat=self.num_disks)
-        )
+        self.state_list = list(itertools.product(list(range(self.num_poles)), repeat=self.num_disks))
 
         # Set start state.
         if start_state is not None:
@@ -76,9 +74,7 @@ class HanoiEnvironment(TransitionMatrixBaseEnvironment):
 
     def step(self, action, state=None):
         if state is None:
-            next_state, reward, terminal, info = super().step(
-                action, state=self.current_state
-            )
+            next_state, reward, terminal, info = super().step(action, state=self.current_state)
         else:
             next_state, reward, terminal, info = super().step(action, state=state)
 
@@ -122,9 +118,7 @@ class HanoiEnvironment(TransitionMatrixBaseEnvironment):
             return []
         else:
             legal_actions = [
-                i
-                for i, action in enumerate(self.action_list)
-                if self._is_action_legal(action, state=state)
+                i for i, action in enumerate(self.action_list) if self._is_action_legal(action, state=state)
             ]
             return legal_actions
 
