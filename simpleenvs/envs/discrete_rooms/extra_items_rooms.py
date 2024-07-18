@@ -2,19 +2,31 @@ import copy
 
 from itertools import product
 
-from simpleenvs.envs.discrete_rooms import DiscreteRoomEnvironment, CELL_TYPES_DICT, ACTIONS_DICT
+from simpleenvs.envs.discrete_rooms import (
+    DiscreteRoomEnvironment,
+    CELL_TYPES_DICT,
+    ACTIONS_DICT,
+)
 
 
 class ExtraItemsDiscreteRoomEnvironment(DiscreteRoomEnvironment):
-    def __init__(self, room_template_file_path, movement_penalty=-0.001, goal_reward=1.0):
+    def __init__(
+        self,
+        room_template_file_path,
+        movement_penalty=-0.001,
+        goal_reward=1.0,
+        persistent_items=False,  # Whether the additional items are persistent or consumed upon collection
+    ):
         self.basic_init = True
         super().__init__(room_template_file_path, movement_penalty, goal_reward)
         self.basic_init = False
         self.positions = self.state_space
         self.item_locations = self.get_item_locations()
-        self.state_space, self.terminal_states = self.adjust_for_item(
-            self.state_space, self.terminal_states, self.item_locations
-        )
+        self.persistent_items = persistent_items
+        if not self.persistent_items:
+            self.state_space, self.terminal_states = self.adjust_for_item(
+                self.state_space, self.terminal_states, self.item_locations
+            )
         self.transition_matrix = self._compute_transition_matrix()
 
     def get_item_locations(self):
@@ -56,6 +68,8 @@ class ExtraItemsDiscreteRoomEnvironment(DiscreteRoomEnvironment):
         return modified_states, terminal_states
 
     def has_picked_up_item(self, state):
+        if self.persistent_items:
+            return False
         position = (state[0], state[1])
         if len(state) <= 2 or not hasattr(self, "item_locations"):
             return False
@@ -104,14 +118,15 @@ class ExtraItemsDiscreteRoomEnvironment(DiscreteRoomEnvironment):
                 ):
                     # get the reward at that position
                     reward = float(self.gridworld[next_state[0]][next_state[1]]) + self.movement_penalty
-                    # get the id of which item it is
-                    item_index = self.item_locations.index(next_state[:2])
-                    next_state = list(next_state)
-                    # fill out the remainder of the state item flags
-                    while len(next_state) < 2 + item_index + 1:
-                        next_state.append(0)
-                    next_state[2 + item_index] = 1
-                    next_state = tuple(next_state)
+                    if not self.persistent_items:
+                        # get the id of which item it is
+                        item_index = self.item_locations.index(next_state[:2])
+                        next_state = list(next_state)
+                        # fill out the remainder of the state item flags
+                        while len(next_state) < 2 + item_index + 1:
+                            next_state.append(0)
+                        next_state[2 + item_index] = 1
+                        next_state = tuple(next_state)
                 else:
                     reward = self.movement_penalty
 
@@ -121,24 +136,16 @@ class ExtraItemsDiscreteRoomEnvironment(DiscreteRoomEnvironment):
 
 
 # Import room template files.
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    import importlib_resources as pkg_resources
+from importlib.resources import files
 
 from . import data
 
-with pkg_resources.path(data, "basic_reward_room.txt") as path:
-    basic_reward_room = path
 
-with pkg_resources.path(data, "double_reward_room.txt") as path:
-    double_reward_room = path
-
-with pkg_resources.path(data, "basic_penalty_room.txt") as path:
-    basic_penalty_room = path
-
-with pkg_resources.path(data, "double_penalty_room.txt") as path:
-    double_penalty_room = path
+basic_reward_room = files(data).joinpath("basic_reward_room.txt")
+double_reward_room = files(data).joinpath("double_reward_room.txt")
+basic_penalty_room = files(data).joinpath("basic_penalty_room.txt")
+double_penalty_room = files(data).joinpath("double_penalty_room.txt")
+four_rooms_firewall = files(data).joinpath("four_rooms_firewall.txt")
 
 
 class BasicRewardRoom(ExtraItemsDiscreteRoomEnvironment):
@@ -189,3 +196,16 @@ class DoublePenaltyRoom(ExtraItemsDiscreteRoomEnvironment):
 
     def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(double_penalty_room, movement_penalty, goal_reward)
+
+
+class FourRoomsFireWall(ExtraItemsDiscreteRoomEnvironment):
+    """
+    An instance of four-rooms except there are no walls, only states that give a
+    high negative reward when visited. This high negative reward is received every
+    time the agent visits that state.
+    Goal Reward: +1
+    Movement Penalty: -0.01
+    """
+
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
+        super().__init__(four_rooms_firewall, movement_penalty, goal_reward, persistent_items=True)
