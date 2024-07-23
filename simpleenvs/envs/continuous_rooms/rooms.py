@@ -177,10 +177,18 @@ from . import data
 with pkg_resources.path(data, "xu_four_rooms.txt") as path:
     xu_four_rooms = path
 
+with pkg_resources.path(data, "empty_rooms.txt") as path:
+    empty_rooms = path
+
 
 class ContinuousFourRooms(ContinuousRoomsEnvironment):
     def __init__(self, explorable=False, render_mode="human"):
         super().__init__(xu_four_rooms, explorable, render_mode)
+
+
+class ContinuousEmptyRooms(ContinuousRoomsEnvironment):
+    def __init__(self, explorable=False, render_mode="human"):
+        super().__init__(empty_rooms, explorable, render_mode)
 
 
 if __name__ == "__main__":

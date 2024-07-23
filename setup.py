@@ -17,7 +17,7 @@ setuptools.setup(
     package_dir={"simpleenvs": "simpleenvs"},
     data_files=[
         (
-            "room_files",
+            "discrete_room_files",
             [
                 "simpleenvs/envs/discrete_rooms/data/two_rooms.txt",
                 "simpleenvs/envs/discrete_rooms/data/six_rooms.txt",
@@ -40,6 +40,12 @@ setuptools.setup(
             ],
         ),
         (
+            "continuous_room_files",
+            [
+                "simpleenvs/envs/continuous_rooms/data/xu_four_rooms.txt",
+                "simpleenvs/envs/continuous_rooms/data/empty_rooms.txt",
+            ],
+        )(
             "pacman_files",
             ["simpleenvs/envs/grid_pacman/data/four_room.txt"],
         ),
