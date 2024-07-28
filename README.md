@@ -1,7 +1,7 @@
-# simpleenvs
+# SimpleEnvs
 A collection of Reinforcement Learning (RL) environments which I have implemented as part of my research. Hopefully this collection will grow over time, and prove useful to others as well.
 
-All of these environments use an interaction API similar to that used by [OpenAI Gym](https://github.com/openai/gym), however we do not implement Gym's `Env` class directly.
+All of the environments here are implemented using the [SimpleOptions](https://github.com/Ueva/BaRL-SimpleOptions) framework, and they bear a strong resembelance to the [OpenAI Gym](https://github.com/openai/gym) and [Farama Gymnasium](https://github.com/Farama-Foundation/Gymnasium) frameworks. If you have used these previously, you should feel right at home!
 
 Further documentation coming soon!
 
