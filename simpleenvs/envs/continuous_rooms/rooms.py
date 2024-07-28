@@ -189,18 +189,13 @@ class ContinuousRoomsEnvironment(gym.Env):
         return (self.y_interp_inv(observation[0]), self.x_interp_inv(observation[1]))
 
 
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    import importlib_resources as pkg_resources
+# Import room template files.
+from importlib.resources import files
 
 from . import data
 
-with pkg_resources.path(data, "xu_four_rooms.txt") as path:
-    xu_four_rooms = path
-
-with pkg_resources.path(data, "empty_rooms.txt") as path:
-    empty_rooms = path
+xu_four_rooms = files(data).joinpath("xu_four_rooms.txt")
+empty_rooms = files(data).joinpath("empty_rooms.txt")
 
 
 class ContinuousFourRooms(ContinuousRoomsEnvironment):
