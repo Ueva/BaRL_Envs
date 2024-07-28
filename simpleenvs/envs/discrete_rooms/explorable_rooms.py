@@ -49,6 +49,8 @@ class DiscreteExplorableRoomEnvironment(DiscreteRoomEnvironment):
             for x in range(self.gridworld.shape[1]):
                 if CELL_TYPES_DICT[self.gridworld[y, x]] == "start":
                     self.initial_states.append((y, x))
+                elif CELL_TYPES_DICT[self.gridworld[y, x]] == "goal":
+                    self.gridworld[y, x] = "."
 
     def _initialise_state_space(self):
         # Create set of all valid states.

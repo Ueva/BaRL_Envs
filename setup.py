@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.3.0",
     author="Joshua Evans",
     author_email="jbe25@bath.ac.uk",
-    description="A package which provides implementations of various reinforcement learning environments.",
+    description="A package providing implementations of sequential decision problems using the SimpleOptions framework.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Ueva/BaRL-Envs",
@@ -31,11 +31,13 @@ setuptools.setup(
             "envs/discrete_rooms/data/parr_maze.txt",
             "envs/discrete_rooms/data/parr_mini_maze.txt",
             "envs/discrete_rooms/data/ramesh_maze.txt",
-            "envs/grid_pacman/data/four_room.txt",
+            "simpleenvs/envs/continuous_rooms/data/xu_four_rooms.txt",
+            "simpleenvs/envs/continuous_rooms/data/empty_rooms.txt",
             "renderers/taxi_renderer_resources/taxi_full.png",
             "renderers/taxi_renderer_resources/taxi_empty.png",
             "renderers/taxi_renderer_resources/passenger.png",
             "renderers/taxi_renderer_resources/goal_flag.png",
+            "envs/grid_pacman/data/four_room.txt",
         ]
     },
     include_package_data=True,
@@ -46,6 +48,7 @@ setuptools.setup(
         "numpy",
         "networkx",
         "pygame",
+        "gymnasium",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -55,5 +58,5 @@ setuptools.setup(
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Natural Language :: English",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.8",
 )
