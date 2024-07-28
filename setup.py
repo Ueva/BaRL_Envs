@@ -5,10 +5,10 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="simpleenvs",
-    version="0.1.2",
+    version="0.2.1",
     author="Joshua Evans",
     author_email="jbe25@bath.ac.uk",
-    description="A package which provides implementations of various reinforcement learning environments.",
+    description="A package providing implementations of sequential decision problems using the SimpleOptions framework.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Ueva/BaRL-Envs",
@@ -45,7 +45,8 @@ setuptools.setup(
                 "simpleenvs/envs/continuous_rooms/data/xu_four_rooms.txt",
                 "simpleenvs/envs/continuous_rooms/data/empty_rooms.txt",
             ],
-        )(
+        ),
+        (
             "pacman_files",
             ["simpleenvs/envs/grid_pacman/data/four_room.txt"],
         ),
@@ -57,6 +58,7 @@ setuptools.setup(
         "numpy",
         "networkx",
         "pygame",
+        "gymnasium",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -66,5 +68,5 @@ setuptools.setup(
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Natural Language :: English",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.8",
 )
