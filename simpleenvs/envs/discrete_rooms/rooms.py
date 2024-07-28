@@ -2,69 +2,16 @@ import copy
 import random
 import numpy as np
 
-from simpleoptions import BaseEnvironment
+from simpleoptions import TransitionMatrixBaseEnvironment
 
 from simpleenvs.renderers import RoomRenderer
-
-# Import room template files.
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    import importlib_resources as pkg_resources
-
-from . import data
-
-with pkg_resources.path(data, "two_rooms.txt") as path:
-    default_two_room = path
-
-with pkg_resources.path(data, "six_rooms.txt") as path:
-    default_six_room = path
-
-with pkg_resources.path(data, "nine_rooms.txt") as path:
-    default_nine_room = path
-
-with pkg_resources.path(data, "xu_four_rooms.txt") as path:
-    xu_four_room = path
-
-with pkg_resources.path(data, "bridge_room.txt") as path:
-    bridge_room = path
-
-with pkg_resources.path(data, "cage_room.txt") as path:
-    cage_room = path
-
-with pkg_resources.path(data, "empty_room.txt") as path:
-    empty_room = path
-
-with pkg_resources.path(data, "small_rooms.txt") as path:
-    small_rooms = path
-
-with pkg_resources.path(data, "four_rooms.txt") as path:
-    four_rooms = path
-
-with pkg_resources.path(data, "four_rooms_holes.txt") as path:
-    four_rooms_holes = path
-
-with pkg_resources.path(data, "maze_rooms.txt") as path:
-    maze_rooms = path
-
-with pkg_resources.path(data, "spiral_room.txt") as path:
-    spiral_rooms = path
-
-with pkg_resources.path(data, "parr_maze.txt") as path:
-    parr_maze = path
-
-with pkg_resources.path(data, "parr_mini_maze.txt") as path:
-    parr_mini_maze = path
-
-with pkg_resources.path(data, "ramesh_maze.txt") as path:
-    ramesh_maze = path
 
 CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent"}
 
 ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
 
 
-class DiscreteRoomEnvironment(BaseEnvironment):
+class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
     """
     Class representing a discrete "rooms-like" gridworld, as is commonly seen in the HRL literature.
     """
@@ -80,14 +27,15 @@ class DiscreteRoomEnvironment(BaseEnvironment):
             movement_penalty {float} -- Penalty applied each time step for taking an action. (default: {-1.0})
             goal_reward {float} -- Reward given to the agent upon reaching a goal state. (default: {10.0})
         """
-        super().__init__()
-
         self._initialise_rooms(room_template_file_path)
         self._initialise_state_space()
         self.movement_penalty = movement_penalty
         self.goal_reward = goal_reward
         self.is_reset = False
         self.renderer = None
+        self.current_state = None
+
+        super().__init__(deterministic=True)
 
     def _initialise_rooms(self, room_template_file_path):
         """
@@ -105,7 +53,10 @@ class DiscreteRoomEnvironment(BaseEnvironment):
         self.terminal_states = []
         for y in range(self.gridworld.shape[0]):
             for x in range(self.gridworld.shape[1]):
-                if CELL_TYPES_DICT[self.gridworld[y, x]] == "start":
+                if self.gridworld[y, x] not in CELL_TYPES_DICT:
+                    if not self.gridworld[y, x].replace("-", "", 1).isnumeric():
+                        raise ValueError(f"Invalid cell type '{self.gridworld[y, x]}' in room template file.")
+                elif CELL_TYPES_DICT[self.gridworld[y, x]] == "start":
                     self.initial_states.append((y, x))
                 elif CELL_TYPES_DICT[self.gridworld[y, x]] == "goal":
                     self.terminal_states.append((y, x))
@@ -115,7 +66,9 @@ class DiscreteRoomEnvironment(BaseEnvironment):
         self.state_space = set()
         for y in range(self.gridworld.shape[0]):
             for x in range(self.gridworld.shape[1]):
-                if CELL_TYPES_DICT[self.gridworld[y, x]] != "wall":
+                if self.gridworld[y, x] in CELL_TYPES_DICT and CELL_TYPES_DICT[self.gridworld[y, x]] != "wall":
+                    self.state_space.add((y, x))
+                elif self.gridworld[y, x].replace("-", "", 1).isnumeric():
                     self.state_space.add((y, x))
 
     def reset(self, state=None):
@@ -131,58 +84,25 @@ class DiscreteRoomEnvironment(BaseEnvironment):
         """
 
         if state is None:
-            self.position = random.choice(self.initial_states)
+            self.current_state = random.choice(self.initial_states)
         else:
-            self.position = copy.deepcopy(state)
+            self.current_state = copy.deepcopy(state)
 
-        self.current_initial_state = self.position
+        self.current_initial_state = self.current_state
 
         self.is_reset = True
 
-        return (self.position[0], self.position[1])
+        return (self.current_state[0], self.current_state[1])
 
-    def step(self, action):
-        """
-        Executes one time step in the environment in response to an agent's action.
+    def step(self, action, state=None):
+        if state is None:
+            next_state, reward, terminal, info = super().step(action, state=self.current_state)
+        else:
+            next_state, reward, terminal, info = super().step(action, state=state)
 
-        Arguments:
-            action {int} -- The agent's selected action.
+        self.current_state = next_state
 
-        Returns:
-            [(int, int), float, bool] -- The environment's next state, the reward earned, and whether the new state is terminal.
-        """
-
-        current_state = self.position
-        next_state = self.position
-
-        # Computes the agent's next intended position.
-        if ACTIONS_DICT[action] == "DOWN":
-            next_state = (next_state[0] + 1, next_state[1])
-        elif ACTIONS_DICT[action] == "UP":
-            next_state = (next_state[0] - 1, next_state[1])
-        elif ACTIONS_DICT[action] == "RIGHT":
-            next_state = (next_state[0], next_state[1] + 1)
-        elif ACTIONS_DICT[action] == "LEFT":
-            next_state = (next_state[0], next_state[1] - 1)
-
-        reward = 0
-        terminal = False
-
-        # Determines whether the next state is legal and/or terminal.
-        if CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]] == "wall":
-            next_state = current_state
-        elif self.is_state_terminal(state=(next_state[0], next_state[1])):
-            reward += self.goal_reward
-            terminal = True
-
-        if terminal:
-            self.is_reset = False
-
-        reward += self.movement_penalty
-
-        self.position = next_state
-
-        return next_state, reward, terminal, {}
+        return next_state, reward, terminal, info
 
     def get_state_space(self):
         return self.state_space
@@ -201,7 +121,7 @@ class DiscreteRoomEnvironment(BaseEnvironment):
             [list(int)] -- The list of actions available in the given state.
         """
         if state is None:
-            state = self.position
+            state = self.current_state
 
         if self.is_state_terminal(state):
             return []
@@ -222,7 +142,7 @@ class DiscreteRoomEnvironment(BaseEnvironment):
             [list(bool)] -- A boolean mask indicating action availability in the current state.
         """
         if state is None:
-            state = self.position
+            state = self.current_state
 
         if self.is_state_terminal(state):
             return [False for i in range(4)]
@@ -242,7 +162,7 @@ class DiscreteRoomEnvironment(BaseEnvironment):
             )
 
         self.renderer.update(
-            self.position,
+            self.current_state,
             self.gridworld,
             start_state=self.current_initial_state,
             goal_states=self.terminal_states,
@@ -267,7 +187,7 @@ class DiscreteRoomEnvironment(BaseEnvironment):
             bool: Whether or not the given state is terminal.
         """
         if state is None:
-            state = self.position
+            state = self.current_state
 
         # return CELL_TYPES_DICT[self.gridworld[state[0]][state[1]]] == "goal"
         return state in self.terminal_states
@@ -282,19 +202,8 @@ class DiscreteRoomEnvironment(BaseEnvironment):
         return copy.deepcopy(self.initial_states)
 
     def get_successors(self, state=None, actions=None):
-        """
-        Returns a list of states which can be reached by taking an action in the given state.
-        If no state is specified, a list of successor states for the current state will be returned.
-
-        Args:
-            state (tuple, optional): The state to return successors for. Defaults to None (i.e. current state).
-            actions (List[Hashable], optional): The actions to test in the given state when searching for successors. Defaults to None (i.e. tests all available actions).
-
-        Returns:
-            list[tuple]: A list of states reachable by taking an action in the given state.
-        """
         if state is None:
-            state = self.position
+            state = self.current_state
 
         if actions is None:
             actions = self.get_available_actions(state=state)
@@ -310,16 +219,53 @@ class DiscreteRoomEnvironment(BaseEnvironment):
                 next_state = (state[0], state[1] + 1)
             elif ACTIONS_DICT[action] == "LEFT":
                 next_state = (state[0], state[1] - 1)
+            # if next state is a wall return to the current state
+            if (
+                self.gridworld[next_state[0]][next_state[1]] in CELL_TYPES_DICT
+                and CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]] == "wall"
+            ):
+                next_state = (state[0], state[1])
 
-            if CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]] == "wall":
-                next_state = copy.deepcopy(state)
+            if self.is_state_terminal(state=(next_state[0], next_state[1])):
+                reward = self.goal_reward + self.movement_penalty
+            else:
+                if (
+                    self.gridworld[next_state[0]][next_state[1]] not in CELL_TYPES_DICT
+                    and self.gridworld[next_state[0]][next_state[1]].replace("-", "", 1).isnumeric()
+                ):
+                    reward = float(self.gridworld[next_state[0]][next_state[1]]) + self.movement_penalty
+                else:
+                    reward = self.movement_penalty
 
-            successor_states.append(next_state)
+            successor_states.append(((next_state, reward), 1.0 / len(actions)))
 
         return successor_states
 
 
-class DiscreteDefaultTwoRooms(DiscreteRoomEnvironment):
+# Import room template files.
+from importlib.resources import files
+
+from . import data
+
+default_two_room = files(data).joinpath("two_rooms.txt")
+default_six_room = files(data).joinpath("six_rooms.txt")
+default_nine_room = files(data).joinpath("nine_rooms.txt")
+xu_four_room = files(data).joinpath("xu_four_rooms.txt")
+bridge_room = files(data).joinpath("bridge_room.txt")
+cage_room = files(data).joinpath("cage_room.txt")
+empty_room = files(data).joinpath("empty_room.txt")
+small_rooms = files(data).joinpath("small_rooms.txt")
+four_rooms = files(data).joinpath("four_rooms.txt")
+four_rooms_holes = files(data).joinpath("four_rooms_holes.txt")
+maze_rooms = files(data).joinpath("maze_rooms.txt")
+spiral_rooms = files(data).joinpath("spiral_room.txt")
+parr_maze = files(data).joinpath("parr_maze.txt")
+parr_mini_maze = files(data).joinpath("parr_mini_maze.txt")
+ramesh_maze = files(data).joinpath("ramesh_maze.txt")
+wide_path = files(data).joinpath("wide_path.txt")
+
+
+class TwoRooms(DiscreteRoomEnvironment):
     """
     A default two-rooms environment, as is commonly featured in the HRL literature.
     Goal Reward: +1
@@ -330,7 +276,7 @@ class DiscreteDefaultTwoRooms(DiscreteRoomEnvironment):
         super().__init__(default_two_room, movement_penalty, goal_reward)
 
 
-class DiscreteDefaultSixRooms(DiscreteRoomEnvironment):
+class SixRooms(DiscreteRoomEnvironment):
     """
     A default six-rooms environment, as is commonly featured in the HRL literature.
     Goal Reward: +1
@@ -341,7 +287,7 @@ class DiscreteDefaultSixRooms(DiscreteRoomEnvironment):
         super().__init__(default_six_room, movement_penalty, goal_reward)
 
 
-class DiscreteDefaultNineRooms(DiscreteRoomEnvironment):
+class NineRooms(DiscreteRoomEnvironment):
     """
     A default nine-rooms environment, as is commonly featured in the HRL literature.
     Goal Reward: +1
@@ -352,7 +298,7 @@ class DiscreteDefaultNineRooms(DiscreteRoomEnvironment):
         super().__init__(default_nine_room, movement_penalty, goal_reward)
 
 
-class DiscreteXuFourRooms(DiscreteRoomEnvironment):
+class XuFourRooms(DiscreteRoomEnvironment):
     """
     The four-room environment used in Xu X., Yang M. & Li G. 2019
     "Constructing Temporally Extended Actions through Incremental
@@ -488,3 +434,12 @@ class RameshMaze(DiscreteRoomEnvironment):
 
     def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(ramesh_maze, movement_penalty, goal_reward)
+
+
+class WidePath(DiscreteRoomEnvironment):
+    """
+    A single-room environment featuring a wide path from the starting state to the goal state.
+    """
+
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
+        super().__init__(wide_path, movement_penalty, goal_reward)

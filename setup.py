@@ -5,15 +5,14 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="simpleenvs",
-    version="0.2.1",
+    version="0.3.0",
     author="Joshua Evans",
     author_email="jbe25@bath.ac.uk",
     description="A package providing implementations of sequential decision problems using the SimpleOptions framework.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Ueva/BaRL-Envs",
-    # packages=setuptools.find_packages(exclude=("example", "test")),
-    packages=["simpleenvs"],
+    packages=setuptools.find_packages(exclude=("test")),
     package_dir={"simpleenvs": "simpleenvs"},
     data_files=[
         (
@@ -33,9 +32,6 @@ setuptools.setup(
                 "simpleenvs/envs/discrete_rooms/data/spiral_room.txt",
                 "simpleenvs/envs/discrete_rooms/data/parr_maze.txt",
                 "simpleenvs/envs/discrete_rooms/data/parr_mini_maze.txt",
-                "simpleenvs/envs/discrete_rooms/data/four_rooms_transfer.txt",
-                "simpleenvs/envs/discrete_rooms/data/xu_four_rooms_transfer.txt",
-                "simpleenvs/envs/discrete_rooms/data/nine_rooms_transfer.txt",
                 "simpleenvs/envs/discrete_rooms/data/ramesh_maze.txt",
             ],
         ),
@@ -49,6 +45,15 @@ setuptools.setup(
         (
             "pacman_files",
             ["simpleenvs/envs/grid_pacman/data/four_room.txt"],
+        ),
+        (
+            "taxi_renderer_resources",
+            [
+                "simpleenvs/renderers/taxi_renderer_resources/taxi_full.png",
+                "simpleenvs/renderers/taxi_renderer_resources/taxi_empty.png",
+                "simpleenvs/renderers/taxi_renderer_resources/passenger.png",
+                "simpleenvs/renderers/taxi_renderer_resources/goal_flag.png",
+            ],
         ),
     ],
     install_requires=[
