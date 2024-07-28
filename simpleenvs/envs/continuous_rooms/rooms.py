@@ -6,6 +6,7 @@ import gymnasium as gym
 
 from simpleoptions.function_approximation import GymWrapper
 
+from typing import Hashable, Tuple
 
 CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent"}
 
@@ -16,15 +17,28 @@ class ContinuousRoomsEnvironment(gym.Env):
 
     metadata = {"render.modes": ["human", "rgb_array"]}
 
-    def __init__(self, room_template_file_path, explorable=False, render_mode="human"):
+    def __init__(
+        self,
+        room_template_file_path: str,
+        x_lims: Tuple[float, float] = (-10.0, 10.0),
+        y_lims: Tuple[float, float] = (-10.0, 10.0),
+        explorable: bool = False,
+        render_mode: str = "human",
+    ):
         super().__init__()
+
+        # Set observation bounds.
+        self.y_min = y_lims[0]
+        self.y_max = y_lims[1]
+        self.x_min = x_lims[0]
+        self.x_max = x_lims[1]
 
         # Initialise gridworld based on template file.
         self._initialise_rooms(room_template_file_path, explorable)
 
         # Define observation and action spaces.
         self.observation_space = gym.spaces.Box(
-            low=np.array([-10.0, -10.0]), high=np.array([10.0, 10.0]), dtype=np.float32
+            low=np.array([self.y_min, self.x_min]), high=np.array([self.y_max, self.x_max]), dtype=np.float32
         )  # 2D continuous state space.
         self.action_space = gym.spaces.Discrete(4)  # 4 discrete actions.
 
@@ -40,17 +54,13 @@ class ContinuousRoomsEnvironment(gym.Env):
         self.y_cells = self.gridworld.shape[0]
         self.x_cells = self.gridworld.shape[1]
 
-        # Base Python version (fastest):
-        self.y_interp = lambda y: (y - 0) * (10.0 - -10.0) / (self.y_cells + 1 - 0) + -10.0
-        self.x_interp = lambda x: (x - 0) * (10.0 - -10.0) / (self.x_cells + 1 - 0) + -10.0
+        # Define mapping from cell-space to observation-space.
+        self.y_interp = lambda y: (y - 0) * (self.y_max - self.y_min) / (self.y_cells - 0) + self.y_min
+        self.x_interp = lambda x: (x - 0) * (self.x_max - self.x_min) / (self.x_cells - 0) + self.x_min
 
-        # NumPy version (slower):
-        # self.y_interp = lambda y: np.interp(y, [0, self.y_cells + 1], [-10.0, 10.0])
-        # self.x_interp = lambda x: np.interp(x, [0, self.x_cells + 1], [-10.0, 10.0])
-
-        # SciPy version (slowest):
-        # self.y_interp = scipy.interpolate.interp1d([0, self.y_cells + 1], [-10.0, 10.0])
-        # self.x_interp = scipy.interpolate.interp1d([0, self.x_cells + 1], [-10.0, 10.0])
+        # Define mapping from observation-space to cell-space.
+        self.y_interp_inv = lambda y: (y - self.y_min) * (self.y_cells - 0) / (self.y_max - self.y_min) + 0
+        self.x_interp_inv = lambda x: (x - self.x_min) * (self.x_cells - 0) / (self.x_max - self.x_min) + 0
 
         # Discover start and goal states.
         self.initial_states = []
@@ -71,9 +81,12 @@ class ContinuousRoomsEnvironment(gym.Env):
         else:
             self.current_state = state
 
-        return self._get_obs(), {}
+        return self._get_observation(), {}
 
-    def step(self, action):
+    def step(self, action, state=None):
+
+        if state is None:
+            state = self.current_state
 
         current_state = self.current_state
         next_state = self.current_state
@@ -104,7 +117,7 @@ class ContinuousRoomsEnvironment(gym.Env):
 
         self.current_state = next_state
 
-        return self._get_obs(), reward, terminal, False, {}
+        return self._get_observation(), reward, terminal, False, {}
 
     def render(self):
         if self.render_mode == "rgb_array":
@@ -160,11 +173,20 @@ class ContinuousRoomsEnvironment(gym.Env):
             pygame.display.quit()
             pygame.quit()
 
-    def _get_obs(self):
-        return np.array([self.y_interp(self.current_state[0]), self.x_interp(self.current_state[1])], dtype=np.float32)
+    def _get_observation(self, state=None):
+        """
+        Converts from a state (coordinates in the cell-space) to an observation (coordinates in the range -10 to +10).
+        """
+        if state is None:
+            state = self.current_state
 
-    def _get_cell(self):
-        return np.array([self.current_state[0], self.current_state[1]], dtype=np.int32)
+        return np.array([self.y_interp(state[0]), self.x_interp(state[1])], dtype=np.float32)
+
+    def _get_cell(self, observation):
+        """
+        Converts from an observation (coordinates in the range -10 to +10) to a state (coordinates in the cell-space).
+        """
+        return (self.y_interp_inv(observation[0]), self.x_interp_inv(observation[1]))
 
 
 try:
