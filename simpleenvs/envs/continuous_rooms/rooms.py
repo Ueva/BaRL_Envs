@@ -205,12 +205,12 @@ with pkg_resources.path(data, "empty_rooms.txt") as path:
 
 class ContinuousFourRooms(ContinuousRoomsEnvironment):
     def __init__(self, explorable=False, render_mode="human"):
-        super().__init__(xu_four_rooms, explorable, render_mode)
+        super().__init__(room_template_file_path=xu_four_rooms, explorable=explorable, render_mode=render_mode)
 
 
 class ContinuousEmptyRooms(ContinuousRoomsEnvironment):
     def __init__(self, explorable=False, render_mode="human"):
-        super().__init__(empty_rooms, explorable, render_mode)
+        super().__init__(room_template_file_path=empty_rooms, explorable=explorable, render_mode=render_mode)
 
 
 if __name__ == "__main__":
