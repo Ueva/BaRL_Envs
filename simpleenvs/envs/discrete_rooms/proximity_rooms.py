@@ -109,14 +109,15 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
     def step(self, action, state=None):
 
         if state is None:
-            next_state, reward, terminal, info = super().step(
-                action, state=self.current_state
-            )
+            next_state, reward, _, info = super().step(action, state=self.current_state)
         else:
-            next_state, reward, terminal, info = super().step(action, state=state)
+            next_state, reward, _, info = super().step(action, state=state)
 
         self.current_state = next_state
 
+        terminal = ACTIONS_DICT[action] == "TERMINATE" or self.is_state_terminal(
+            next_state
+        )
         if terminal:
             self.is_reset = False
 
