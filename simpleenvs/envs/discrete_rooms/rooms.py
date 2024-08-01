@@ -87,12 +87,11 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
             self.current_state = random.choice(self.initial_states)
         else:
             self.current_state = copy.deepcopy(state)
-
         self.current_initial_state = self.current_state
 
         self.is_reset = True
 
-        return (self.current_state[0], self.current_state[1])
+        return self.current_state
 
     def step(self, action, state=None):
         if state is None:

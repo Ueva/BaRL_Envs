@@ -6,6 +6,7 @@ from simpleenvs.envs.discrete_rooms import (
     BasicPenaltyRoom,
     DoublePenaltyRoom,
     FourRoomsFireWall,
+    FourRoomsPenalty,
 )
 
 
@@ -252,6 +253,30 @@ class TestPersistentPenaltyRoom:
         ns, r, _, _ = self.env.step(3)
         assert ns == (2, 7)
         assert r == -50.001
+
+
+class TestFourRoomsPenalty:
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        self.env = FourRoomsPenalty()
+
+    def test_state_space_init(self):
+        assert (10, 2) not in self.env.state_space
+        assert (10, 2, 1) in self.env.state_space
+        print(f"transition matrix:")
+        for k, v in self.env.transition_matrix.items():
+            print(f"{k} : {v}")
+        tm_states = set([k[0] for k in self.env.transition_matrix.keys()])
+        next_states = set()
+        for t in self.env.transition_matrix.values():
+            next_states.update([ns for ((ns, _), _) in t])
+        print(f"tm_states: {tm_states}")
+        print(f"next_states: {next_states}")
+        print(f"(10,2) in tm_states: {(10,2) in tm_states}")
+        print(f"(10,2) in next_states: {(10,2) in next_states}")
+        print(f"self.env.reset((10,2,1)) = {self.env.reset((10,2,1))}")
+
+        assert self.env.reset((10, 2, 1)) == (10, 2, 1)
 
 
 # pytest start instead
