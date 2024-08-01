@@ -278,12 +278,12 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
                 reward = 0.0
 
             # if next state is a wall return to the current state
-            # if (
-            #     self.gridworld[next_state[0]][next_state[1]] in CELL_TYPES_DICT
-            #     and CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]]
-            #     == "wall"
-            # ):
-            #     next_state = (state[0], state[1])
+            if (
+                self.gridworld[next_state[0]][next_state[1]] in CELL_TYPES_DICT
+                and CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]]
+                == "wall"
+            ):
+                next_state = (state[0], state[1])
 
             # if self.is_state_terminal(state=(next_state[0], next_state[1])):
             #     reward = self.goal_reward + self.movement_penalty
