@@ -52,3 +52,6 @@ from simpleenvs.envs.discrete_rooms.extra_items_rooms import DoubleRewardRoom
 from simpleenvs.envs.discrete_rooms.extra_items_rooms import BasicPenaltyRoom
 from simpleenvs.envs.discrete_rooms.extra_items_rooms import DoublePenaltyRoom
 from simpleenvs.envs.discrete_rooms.extra_items_rooms import FourRoomsFireWall
+
+# Environments with proximity-to-goal based reward on termination.
+from simpleenvs.envs.discrete_rooms.proximity_rooms import FourRoomsProximity
