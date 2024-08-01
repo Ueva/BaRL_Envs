@@ -116,6 +116,9 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
 
         self.current_state = next_state
 
+        if terminal:
+            self.is_reset = False
+
         return next_state, reward, terminal, info
 
     def get_state_space(self):
@@ -137,7 +140,7 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
         if state is None:
             state = self.current_state
 
-        if self.is_state_terminal(state):
+        if self.is_state_terminal(state) or not self.is_reset:
             return []
         else:
             return ACTIONS_DICT.keys()
