@@ -304,6 +304,8 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
             key for key, value in ACTIONS_DICT.items() if value == "TERMINATE"
         )
         for state in self.get_state_space():
+            if self.is_state_terminal(state):
+                continue
             (next_state, _), p = self.transition_matrix[(state, action)][0]
             new_reward = -self.distance_to_goal(state)
             self.transition_matrix[(state, action)] = [(next_state, new_reward), p]
