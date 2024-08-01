@@ -30,7 +30,7 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
             movement_penalty {float} -- Penalty applied each time step for taking an action. (default: {-1.0})
             goal_reward {float} -- Reward given to the agent upon reaching a goal state. (default: {10.0})
         """
-        self.is_reset = False
+        self.is_reset = True
         self.renderer = None
         self.current_state = None
         self._initialise_rooms(room_template_file_path)
@@ -42,6 +42,7 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
         super().__init__(deterministic=True)
         # Update termination rewards to reflect distance to goal.
         self.set_terminal_rewards()
+        self.is_reset = False
 
     def _initialise_rooms(self, room_template_file_path):
         """
