@@ -308,7 +308,7 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
                 continue
             (next_state, _), p = self.transition_matrix[(state, action)][0]
             new_reward = -self.distance_to_goal(state)
-            self.transition_matrix[(state, action)] = [(next_state, new_reward), p]
+            self.transition_matrix[(state, action)] = [((next_state, new_reward), p)]
 
     def distance_to_goal(self, state) -> int:
         distance, _ = nx.single_source_dijkstra(
