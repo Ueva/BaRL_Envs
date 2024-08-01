@@ -115,9 +115,10 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
 
         self.current_state = next_state
 
-        terminal = ACTIONS_DICT[action] == "TERMINATE" or self.is_state_terminal(
-            next_state
-        )
+        terminal = ACTIONS_DICT[action] == "TERMINATE"
+        # or self.is_state_terminal(
+        #     next_state
+        # )
         if terminal:
             self.is_reset = False
 
@@ -277,28 +278,28 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
                 reward = 0.0
 
             # if next state is a wall return to the current state
-            if (
-                self.gridworld[next_state[0]][next_state[1]] in CELL_TYPES_DICT
-                and CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]]
-                == "wall"
-            ):
-                next_state = (state[0], state[1])
+            # if (
+            #     self.gridworld[next_state[0]][next_state[1]] in CELL_TYPES_DICT
+            #     and CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]]
+            #     == "wall"
+            # ):
+            #     next_state = (state[0], state[1])
 
-            if self.is_state_terminal(state=(next_state[0], next_state[1])):
-                reward = self.goal_reward + self.movement_penalty
-            else:
-                if (
-                    self.gridworld[next_state[0]][next_state[1]] not in CELL_TYPES_DICT
-                    and self.gridworld[next_state[0]][next_state[1]]
-                    .replace("-", "", 1)
-                    .isnumeric()
-                ):
-                    reward = (
-                        float(self.gridworld[next_state[0]][next_state[1]])
-                        + self.movement_penalty
-                    )
-                else:
-                    reward = self.movement_penalty
+            # if self.is_state_terminal(state=(next_state[0], next_state[1])):
+            #     reward = self.goal_reward + self.movement_penalty
+            # else:
+            #     if (
+            #         self.gridworld[next_state[0]][next_state[1]] not in CELL_TYPES_DICT
+            #         and self.gridworld[next_state[0]][next_state[1]]
+            #         .replace("-", "", 1)
+            #         .isnumeric()
+            #     ):
+            #         reward = (
+            #             float(self.gridworld[next_state[0]][next_state[1]])
+            #             + self.movement_penalty
+            #         )
+            #     else:
+            reward = self.movement_penalty
 
             successor_states.append(((next_state, reward), 1.0 / len(actions)))
 
