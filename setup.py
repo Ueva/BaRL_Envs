@@ -49,6 +49,7 @@ setuptools.setup(
         "networkx",
         "pygame",
         "gymnasium",
+        "distinctipy",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
