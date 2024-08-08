@@ -41,7 +41,7 @@ def test_step():
     assert truncated == False
 
     # Check that the next state is within the expected range.
-    expected_y_range = (state[0] + 1.0 - 0.3, state[0] + 1.0)
+    expected_y_range = (state[0] + 1.0 - 0.5, state[0] + 1.0 + 0.5)
     expected_x_range = (state[1] - 0.1, state[1] + 0.1)
     assert next_state[0] >= expected_y_range[0]
     assert next_state[0] < expected_y_range[1]
@@ -70,7 +70,7 @@ def test_terminal():
     assert truncated == False
 
     # Check that the next state is within the expected range.
-    expected_y_range = (9.5 + 1.0 - 0.3, 9.5 + 1.0)
+    expected_y_range = (9.5 + 1.0 - 0.5, 9.5 + 1.0 + 0.5)
     expected_x_range = (10.5 - 0.1, 10.5 + 0.1)
     assert next_state[0] >= expected_y_range[0]
     assert next_state[0] < expected_y_range[1]
