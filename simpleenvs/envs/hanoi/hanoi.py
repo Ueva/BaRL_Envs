@@ -100,7 +100,12 @@ class HanoiEnvironment(TransitionMatrixBaseEnvironment):
         return next_state, reward, terminal, info
 
     def render(self, mode="human"):
-        pass
+        if self.renderer is None:
+            self.renderer = HanoiRenderer(self.num_poles, self.num_disks)
+
+        self.renderer.update(
+            self.current_state,
+        )
 
     def close(self):
         """
