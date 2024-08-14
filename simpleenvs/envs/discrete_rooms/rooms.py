@@ -110,6 +110,21 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
     def get_action_space(self):
         return {0, 1, 2, 3}
 
+    def encode(self, state) -> int:
+        y, x = state
+        idx = (self.gridworld.shape[1] * y) + x
+        idx -= np.count_nonzero(self.gridworld.flatten()[:idx] == "#")
+        return int(idx)
+
+    def decode(self, idx):
+        n = 0
+        for state, value in np.ndenumerate(self.gridworld):
+            if CELL_TYPES_DICT[value] == "wall":
+                idx += 1
+            if n == idx:
+                return state
+            n += 1
+
     def get_available_actions(self, state=None):
         """
         Returns the set of available actions for the given state (by default, the current state).
