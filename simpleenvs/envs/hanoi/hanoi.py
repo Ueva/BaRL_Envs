@@ -103,9 +103,7 @@ class HanoiEnvironment(TransitionMatrixBaseEnvironment):
         if self.renderer is None:
             self.renderer = HanoiRenderer(self.num_poles, self.num_disks)
 
-        self.renderer.update(
-            self.current_state,
-        )
+        self.renderer.update(self.current_state)
 
     def close(self):
         """
