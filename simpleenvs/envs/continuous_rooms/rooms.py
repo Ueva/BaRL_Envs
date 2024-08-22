@@ -73,6 +73,9 @@ class ContinuousRoomsEnvironment(gym.Env):
         # Set initial state variables.
         self.noisy_starts = noisy_starts
 
+        # Store whether the environment should be explorable.
+        self.explorable = explorable
+
         # Rendering variables.
         self.render_mode = render_mode
         self.window = None
@@ -165,7 +168,10 @@ class ContinuousRoomsEnvironment(gym.Env):
                 next_state = current_state
 
         # If the agent has reached the goal, give a reward and set terminal to True.
-        if CELL_TYPES_DICT[self.gridworld[math.floor(next_state[0]), math.floor(next_state[1])]] == "goal":
+        if (
+            not self.explorable
+            and CELL_TYPES_DICT[self.gridworld[math.floor(next_state[0]), math.floor(next_state[1])]] == "goal"
+        ):
             reward += self.goal_reward
             terminal = True
 

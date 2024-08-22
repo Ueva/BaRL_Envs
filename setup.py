@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="simpleenvs",
-    version="0.4.0",
+    version="0.4.1",
     author="Joshua Evans",
     author_email="jbe25@bath.ac.uk",
     description="A package providing implementations of sequential decision problems using the SimpleOptions framework.",
