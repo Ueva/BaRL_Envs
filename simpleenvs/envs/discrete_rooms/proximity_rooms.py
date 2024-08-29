@@ -11,16 +11,15 @@ from simpleenvs.renderers import RoomRenderer
 # Import room template files.
 from . import data
 
-CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal"}
-
-ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT", 4: "TERMINATE"}
-
 
 class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
     """Represents a discrete rooms-like gridworld with distance-to-goal based reward on termination.
 
     Reward function is a small penalty per step. On termination an additional penalty proportional to the distance-to-goal is given.
     """
+
+    CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal"}
+    ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT", 4: "TERMINATE"}
 
     def __init__(
         self,
@@ -62,12 +61,12 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
         goal_states = []
         for y in range(self.gridworld.shape[0]):
             for x in range(self.gridworld.shape[1]):
-                if self.gridworld[y, x] not in CELL_TYPES_DICT:
+                if self.gridworld[y, x] not in self.CELL_TYPES_DICT:
                     if not self.gridworld[y, x].replace("-", "", 1).isnumeric():
                         raise ValueError(f"Invalid cell type '{self.gridworld[y, x]}' in room template file.")
-                elif CELL_TYPES_DICT[self.gridworld[y, x]] == "start":
+                elif self.CELL_TYPES_DICT[self.gridworld[y, x]] == "start":
                     initial_states.append((y, x))
-                elif CELL_TYPES_DICT[self.gridworld[y, x]] == "goal":
+                elif self.CELL_TYPES_DICT[self.gridworld[y, x]] == "goal":
                     goal_states.append((y, x))
 
         if initial_state:
@@ -89,7 +88,10 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
         self.state_space = set()
         for y in range(self.gridworld.shape[0]):
             for x in range(self.gridworld.shape[1]):
-                if self.gridworld[y, x] in CELL_TYPES_DICT and CELL_TYPES_DICT[self.gridworld[y, x]] != "wall":
+                if (
+                    self.gridworld[y, x] in self.CELL_TYPES_DICT
+                    and self.CELL_TYPES_DICT[self.gridworld[y, x]] != "wall"
+                ):
                     self.state_space.add((y, x))
                 elif self.gridworld[y, x].replace("-", "", 1).isnumeric():
                     self.state_space.add((y, x))
@@ -136,7 +138,7 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
         return self.state_space
 
     def get_action_space(self):
-        return set(ACTIONS_DICT.keys())
+        return set(self.ACTIONS_DICT.keys())
 
     def get_available_actions(self, state=None):
         """
@@ -154,7 +156,7 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
         if self.is_state_terminal(state) or not self.is_reset:
             return []
         else:
-            return ACTIONS_DICT.keys()
+            return self.ACTIONS_DICT.keys()
 
     def encode(self, state) -> int:
         return self.stg.nodes(data="id")[state]
@@ -224,22 +226,22 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
         successor_states = []
         for action in actions:
             next_state = copy.deepcopy(state)
-            if ACTIONS_DICT[action] == "TERMINATE":
+            if self.ACTIONS_DICT[action] == "TERMINATE":
                 next_state = self.terminal_state
             else:
-                if ACTIONS_DICT[action] == "DOWN":
+                if self.ACTIONS_DICT[action] == "DOWN":
                     next_state = (state[0] + 1, state[1])
-                elif ACTIONS_DICT[action] == "UP":
+                elif self.ACTIONS_DICT[action] == "UP":
                     next_state = (state[0] - 1, state[1])
-                elif ACTIONS_DICT[action] == "RIGHT":
+                elif self.ACTIONS_DICT[action] == "RIGHT":
                     next_state = (state[0], state[1] + 1)
-                elif ACTIONS_DICT[action] == "LEFT":
+                elif self.ACTIONS_DICT[action] == "LEFT":
                     next_state = (state[0], state[1] - 1)
 
                 # if next state is a wall return to the current state
                 if (
-                    self.gridworld[next_state[0]][next_state[1]] in CELL_TYPES_DICT
-                    and CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]] == "wall"
+                    self.gridworld[next_state[0]][next_state[1]] in self.CELL_TYPES_DICT
+                    and self.CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]] == "wall"
                 ):
                     next_state = state
             reward = self.movement_penalty
