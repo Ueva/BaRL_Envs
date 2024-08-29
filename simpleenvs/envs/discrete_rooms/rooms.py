@@ -6,14 +6,17 @@ from simpleoptions import TransitionMatrixBaseEnvironment
 
 from simpleenvs.renderers import RoomRenderer
 
+CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent"}
+ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
+
 
 class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
     """
     Class representing a discrete "rooms-like" gridworld, as is commonly seen in the HRL literature.
     """
 
-    CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent"}
-    ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
+    CELL_TYPES_DICT = CELL_TYPES_DICT
+    ACTIONS_DICT = ACTIONS_DICT
 
     def __init__(self, room_template_file_path, movement_penalty=-0.001, goal_reward=1.0):
         """
