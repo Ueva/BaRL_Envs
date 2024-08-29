@@ -242,8 +242,7 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
         return successor_states
 
     def distance_to_goal(self, state):
-        distance, _ = nx.single_source_dijkstra(self.stg, state, self.goal_state)
-        return int(distance)
+        return nx.dijkstra_path_length(self.stg, state, self.goal_state)
 
 
 class FourRoomsProximity(ProximityRoomEnvironment):
