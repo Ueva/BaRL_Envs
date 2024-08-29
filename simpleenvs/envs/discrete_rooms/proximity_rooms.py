@@ -1,6 +1,6 @@
 import copy
-import random
 from importlib.resources import files
+import math
 
 import numpy as np
 import networkx as nx
@@ -11,74 +11,85 @@ from simpleenvs.renderers import RoomRenderer
 # Import room template files.
 from . import data
 
-CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent"}
+CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal"}
 
 ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT", 4: "TERMINATE"}
 
 
 class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
-    """Represents a discrete rooms-like gridworld with distance-to-goal based reward on termination"""
+    """Represents a discrete rooms-like gridworld with distance-to-goal based reward on termination.
 
-    def __init__(self, room_template_file_path, movement_penalty=0.0, goal_reward=1.0):
-        """
-        Initialises a new DiscreteRoomEnvironment object.
+    Reward function is a small penalty per step. On termination an additional penalty proportional to the distance-to-goal is given.
+    """
 
-        Arguments:
-            room_template_file_path {string or Path} -- Path to a gridworld template file.
+    def __init__(
+        self,
+        room_template_file_path,
+        movement_penalty=-1.0,
+        distance_penalty_factor=1.0,
+        initial_state=None,
+        goal_state=None,
+    ):
 
-        Keyword Arguments:
-            movement_penalty {float} -- Penalty applied each time step for taking an action. (default: {-1.0})
-            goal_reward {float} -- Reward given to the agent upon reaching a goal state. (default: {10.0})
-        """
         self.is_reset = True
         self.renderer = None
         self.current_state = None
-        self._initialise_rooms(room_template_file_path)
+        self.terminal_state = (-math.inf, -math.inf)
+        self._initialise_rooms(room_template_file_path, initial_state, goal_state)
         self._initialise_state_space()
         self.movement_penalty = movement_penalty
-        self.goal_reward = goal_reward
+        self.distance_penalty_factor = distance_penalty_factor
         self.stg = self.generate_interaction_graph()
 
         super().__init__(deterministic=True)
-        # Update termination rewards to reflect distance to goal.
-        self.set_terminal_rewards()
         self.is_reset = False
 
-    def _initialise_rooms(self, room_template_file_path):
+    def _initialise_rooms(self, room_template_file_path, initial_state=None, goal_state=None):
         """
         Initialises the envionment according to a given template file.
 
         Arguments:
             room_template_file_path {string or Path} -- Path to a gridworld template file.
+            initial_state
+            goal_state
         """
 
         # Load gridworld template file.
         self.gridworld = np.loadtxt(room_template_file_path, comments="//", dtype=str)
 
         # Discover start and goal states.
-        self.initial_states = []
-        self.terminal_states = []
+        initial_states = []
+        goal_states = []
         for y in range(self.gridworld.shape[0]):
             for x in range(self.gridworld.shape[1]):
                 if self.gridworld[y, x] not in CELL_TYPES_DICT:
                     if not self.gridworld[y, x].replace("-", "", 1).isnumeric():
-                        raise ValueError(
-                            f"Invalid cell type '{self.gridworld[y, x]}' in room template file."
-                        )
+                        raise ValueError(f"Invalid cell type '{self.gridworld[y, x]}' in room template file.")
                 elif CELL_TYPES_DICT[self.gridworld[y, x]] == "start":
-                    self.initial_states.append((y, x))
+                    initial_states.append((y, x))
                 elif CELL_TYPES_DICT[self.gridworld[y, x]] == "goal":
-                    self.terminal_states.append((y, x))
+                    goal_states.append((y, x))
+
+        if initial_state:
+            self.initial_state = initial_state
+        elif len(initial_states) != 1:
+            raise ValueError(f"{len(initial_states)} initial states defined, only one allowed.")
+        else:
+            self.initial_state = initial_states[0]
+
+        if goal_state:
+            self.goal_state = goal_state
+        elif len(goal_states) != 1:
+            raise ValueError(f"{len(goal_states)} goal states defined, only one allowed.")
+        else:
+            self.goal_state = goal_states[0]
 
     def _initialise_state_space(self):
         # Create set of all valid states.
         self.state_space = set()
         for y in range(self.gridworld.shape[0]):
             for x in range(self.gridworld.shape[1]):
-                if (
-                    self.gridworld[y, x] in CELL_TYPES_DICT
-                    and CELL_TYPES_DICT[self.gridworld[y, x]] != "wall"
-                ):
+                if self.gridworld[y, x] in CELL_TYPES_DICT and CELL_TYPES_DICT[self.gridworld[y, x]] != "wall":
                     self.state_space.add((y, x))
                 elif self.gridworld[y, x].replace("-", "", 1).isnumeric():
                     self.state_space.add((y, x))
@@ -96,7 +107,7 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
         """
 
         if state is None:
-            self.current_state = random.choice(self.initial_states)
+            self.current_state = self.initial_state
         else:
             self.current_state = copy.deepcopy(state)
 
@@ -104,23 +115,20 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
 
         self.is_reset = True
 
-        return (self.current_state[0], self.current_state[1])
+        return self.current_state
 
     def step(self, action, state=None):
 
         if state is None:
-            next_state, reward, _, info = super().step(action, state=self.current_state)
+            next_state, reward, terminal, info = super().step(action, state=self.current_state)
         else:
-            next_state, reward, _, info = super().step(action, state=state)
+            next_state, reward, terminal, info = super().step(action, state=state)
 
         self.current_state = next_state
 
-        terminal = ACTIONS_DICT[action] == "TERMINATE"
-        # or self.is_state_terminal(
-        #     next_state
-        # )
         if terminal:
             self.is_reset = False
+            reward -= self.distance_penalty_factor * self.distance_to_goal(state)
 
         return next_state, reward, terminal, info
 
@@ -148,27 +156,6 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
         else:
             return ACTIONS_DICT.keys()
 
-    def get_action_mask(self, state=None):
-        """
-        Returns a boolean mask indicating which actions are available in the given state (by default, the current state).
-
-        A value of True at index i indicates that this action is available.
-        A value of False at index i indicates that the corresponding action is not available.
-
-        Keyword Args:
-            state {(int, int)} -- The state to return an action mask for. Defaults to None (uses current state).
-
-        Returns:
-            [list(bool)] -- A boolean mask indicating action availability in the current state.
-        """
-        if state is None:
-            state = self.current_state
-
-        if self.is_state_terminal(state):
-            return [False] * len(ACTIONS_DICT)
-        else:
-            return [True] * len(ACTIONS_DICT)
-
     def render(self):
         """
         Renders the current environmental state.
@@ -178,14 +165,14 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
             self.renderer = RoomRenderer(
                 self.gridworld,
                 start_state=self.current_initial_state,
-                goal_states=self.terminal_states,
+                goal_states=self.goal_state,
             )
 
         self.renderer.update(
             self.current_state,
             self.gridworld,
             start_state=self.current_initial_state,
-            goal_states=self.terminal_states,
+            goal_states=self.goal_state,
         )
 
     def close(self):
@@ -209,8 +196,7 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
         if state is None:
             state = self.current_state
 
-        # return CELL_TYPES_DICT[self.gridworld[state[0]][state[1]]] == "goal"
-        return state in self.terminal_states
+        return state == self.terminal_state
 
     def get_initial_states(self):
         """
@@ -219,40 +205,7 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
         Returns:
             List[Tuple[int]]: The initial state(s) in this environment.
         """
-        return copy.deepcopy(self.initial_states)
-
-    def get_successor_states(self, state=None, actions=None):
-        if state is None:
-            state = self.current_state
-
-        if actions is None:
-            actions = self.get_available_actions(state=state)
-
-        successor_states = []
-        for action in actions:
-            next_state = copy.deepcopy(state)
-            if ACTIONS_DICT[action] == "DOWN":
-                next_state = (state[0] + 1, state[1])
-            elif ACTIONS_DICT[action] == "UP":
-                next_state = (state[0] - 1, state[1])
-            elif ACTIONS_DICT[action] == "RIGHT":
-                next_state = (state[0], state[1] + 1)
-            elif ACTIONS_DICT[action] == "LEFT":
-                next_state = (state[0], state[1] - 1)
-            elif ACTIONS_DICT[action] == "TERMINATE":
-                next_state = state
-
-            # if next state is a wall return to the current state
-            if (
-                self.gridworld[next_state[0]][next_state[1]] in CELL_TYPES_DICT
-                and CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]]
-                == "wall"
-            ):
-                next_state = (state[0], state[1])
-
-            successor_states.append(next_state, 1.0 / len(actions))
-
-        return successor_states
+        return self.initial_state
 
     def get_successors(self, state=None, actions=None):
         if state is None:
@@ -264,74 +217,42 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
         successor_states = []
         for action in actions:
             next_state = copy.deepcopy(state)
-            if ACTIONS_DICT[action] == "DOWN":
-                next_state = (state[0] + 1, state[1])
-            elif ACTIONS_DICT[action] == "UP":
-                next_state = (state[0] - 1, state[1])
-            elif ACTIONS_DICT[action] == "RIGHT":
-                next_state = (state[0], state[1] + 1)
-            elif ACTIONS_DICT[action] == "LEFT":
-                next_state = (state[0], state[1] - 1)
-            elif ACTIONS_DICT[action] == "TERMINATE":
-                next_state = state
-                # Set reward to 0.0 for now. Update once STG is built.
-                reward = 0.0
+            if ACTIONS_DICT[action] == "TERMINATE":
+                next_state = self.terminal_state
+            else:
+                if ACTIONS_DICT[action] == "DOWN":
+                    next_state = (state[0] + 1, state[1])
+                elif ACTIONS_DICT[action] == "UP":
+                    next_state = (state[0] - 1, state[1])
+                elif ACTIONS_DICT[action] == "RIGHT":
+                    next_state = (state[0], state[1] + 1)
+                elif ACTIONS_DICT[action] == "LEFT":
+                    next_state = (state[0], state[1] - 1)
 
-            # if next state is a wall return to the current state
-            if (
-                self.gridworld[next_state[0]][next_state[1]] in CELL_TYPES_DICT
-                and CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]]
-                == "wall"
-            ):
-                next_state = (state[0], state[1])
-
-            # if self.is_state_terminal(state=(next_state[0], next_state[1])):
-            #     reward = self.goal_reward + self.movement_penalty
-            # else:
-            #     if (
-            #         self.gridworld[next_state[0]][next_state[1]] not in CELL_TYPES_DICT
-            #         and self.gridworld[next_state[0]][next_state[1]]
-            #         .replace("-", "", 1)
-            #         .isnumeric()
-            #     ):
-            #         reward = (
-            #             float(self.gridworld[next_state[0]][next_state[1]])
-            #             + self.movement_penalty
-            #         )
-            #     else:
+                # if next state is a wall return to the current state
+                if (
+                    self.gridworld[next_state[0]][next_state[1]] in CELL_TYPES_DICT
+                    and CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]] == "wall"
+                ):
+                    next_state = state
             reward = self.movement_penalty
 
             successor_states.append(((next_state, reward), 1.0 / len(actions)))
 
         return successor_states
 
-    def set_terminal_rewards(self):
-        action = next(
-            key for key, value in ACTIONS_DICT.items() if value == "TERMINATE"
-        )
-        for state in self.get_state_space():
-            if self.is_state_terminal(state):
-                continue
-            (next_state, _), p = self.transition_matrix[(state, action)][0]
-            new_reward = -self.distance_to_goal(state)
-            self.transition_matrix[(state, action)] = [((next_state, new_reward), p)]
-
-    def distance_to_goal(self, state) -> int:
-        distance, _ = nx.single_source_dijkstra(
-            self.stg, state, self.terminal_states[0]
-        )
+    def distance_to_goal(self, state):
+        distance, _ = nx.single_source_dijkstra(self.stg, state, self.goal_state)
         return int(distance)
 
 
-four_rooms = files(data).joinpath("four_rooms.txt")
-
-
 class FourRoomsProximity(ProximityRoomEnvironment):
-    """
-    A default four-rooms environment, as commonly seen in the HRL literature.
-    Goal Reward: +1
-    Movement Penalty: -0.01
-    """
+    def __init__(self, movement_penalty=-1, distance_penalty_factor=1, initial_state=None, goal_state=None):
+        four_rooms = files(data).joinpath("four_rooms.txt")
+        super().__init__(four_rooms, movement_penalty, distance_penalty_factor, initial_state, goal_state)
 
-    def __init__(self, movement_penalty=-0.001, goal_reward=1):
-        super().__init__(four_rooms, movement_penalty, goal_reward)
+
+class RameshMazeProximity(ProximityRoomEnvironment):
+    def __init__(self, movement_penalty=-1, distance_penalty_factor=1, initial_state=None, goal_state=None):
+        maze = files(data).joinpath("ramesh_maze.txt")
+        super().__init__(maze, movement_penalty, distance_penalty_factor, initial_state, goal_state)
