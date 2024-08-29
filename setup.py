@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="simpleenvs",
-    version="0.3.0",
+    version="0.4.1",
     author="Joshua Evans",
     author_email="jbe25@bath.ac.uk",
     description="A package providing implementations of sequential decision problems using the SimpleOptions framework.",
@@ -31,8 +31,8 @@ setuptools.setup(
             "envs/discrete_rooms/data/parr_maze.txt",
             "envs/discrete_rooms/data/parr_mini_maze.txt",
             "envs/discrete_rooms/data/ramesh_maze.txt",
-            "simpleenvs/envs/continuous_rooms/data/xu_four_rooms.txt",
-            "simpleenvs/envs/continuous_rooms/data/empty_rooms.txt",
+            "envs/continuous_rooms/data/xu_four_rooms.txt",
+            "envs/continuous_rooms/data/empty_rooms.txt",
             "renderers/taxi_renderer_resources/taxi_full.png",
             "renderers/taxi_renderer_resources/taxi_empty.png",
             "renderers/taxi_renderer_resources/passenger.png",
@@ -49,6 +49,7 @@ setuptools.setup(
         "networkx",
         "pygame",
         "gymnasium",
+        "distinctipy",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

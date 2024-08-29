@@ -22,25 +22,59 @@ class ContinuousRoomsEnvironment(gym.Env):
         room_template_file_path: str,
         x_lims: Tuple[float, float] = (-10.0, 10.0),
         y_lims: Tuple[float, float] = (-10.0, 10.0),
+        on_dir_noise_lims: Tuple[float, float] = (-0.5, 0.5),
+        off_dir_noise_lims: Tuple[float, float] = (-0.1, 0.1),
+        movement_penalty: float = -0.01,
+        goal_reward: float = 1.0,
+        noisy_starts: bool = False,
         explorable: bool = False,
         render_mode: str = "human",
     ):
+        """
+        A continuous gridworld environment with continuous state and discrete action spaces.
+
+        Args:
+            room_template_file_path (str): The path to a room template file. Examples can be found in the /data/ directory.
+            x_lims (Tuple[float, float], optional): The limits of the x-axis in the observation space. Defaults to (-10.0, 10.0).
+            y_lims (Tuple[float, float], optional): The limits of the y-axis in the observation space. Defaults to (-10.0, 10.0).
+            on_dir_noise_lims (Tuple[float, float], optional): The limits of the noise in the direction of movement. Defaults to (-0.5, 0.5).
+            off_dir_noise_lims (Tuple[float, float], optional): The limits of the noise orthogonal to the direction of movement. Defaults to (-0.1, 0.1).
+            movement_penalty (float, optional): The penalty for each action taken. Defaults to -0.01.
+            goal_reward (float, optional): The reward for reaching a goal state. Defaults to 1.0.
+            noisy_starts (bool, optional): Whether the agent starts in a random position within an initial state. Defaults to False, meaning the agent starts in the centre of an initial state.
+            explorable (bool, optional): Whether the environment is explorable (i.e., whether goal states are ignored). Defaults to False.
+            render_mode (str, optional): Whether to render states to the screen or return an RGB array. Defaults to "human".
+        """
         super().__init__()
 
         # Set observation bounds.
-        self.y_min = y_lims[0]
-        self.y_max = y_lims[1]
-        self.x_min = x_lims[0]
-        self.x_max = x_lims[1]
+        self.y_lims = y_lims
+        self.x_lims = x_lims
+
+        # Set noise bounds.
+        self.on_dir_noise_lims = on_dir_noise_lims
+        self.off_dir_noise_lims = off_dir_noise_lims
+
+        # Set reward function.
+        self.movement_penalty = movement_penalty
+        self.goal_reward = goal_reward
 
         # Initialise gridworld based on template file.
         self._initialise_rooms(room_template_file_path, explorable)
 
         # Define observation and action spaces.
         self.observation_space = gym.spaces.Box(
-            low=np.array([self.y_min, self.x_min]), high=np.array([self.y_max, self.x_max]), dtype=np.float32
+            low=np.array([self.y_lims[0], self.x_lims[0]]),
+            high=np.array([self.y_lims[1], self.x_lims[1]]),
+            dtype=np.float32,
         )  # 2D continuous state space.
         self.action_space = gym.spaces.Discrete(4)  # 4 discrete actions.
+
+        # Set initial state variables.
+        self.noisy_starts = noisy_starts
+
+        # Store whether the environment should be explorable.
+        self.explorable = explorable
 
         # Rendering variables.
         self.render_mode = render_mode
@@ -55,12 +89,12 @@ class ContinuousRoomsEnvironment(gym.Env):
         self.x_cells = self.gridworld.shape[1]
 
         # Define mapping from cell-space to observation-space.
-        self.y_interp = lambda y: (y - 0) * (self.y_max - self.y_min) / (self.y_cells - 0) + self.y_min
-        self.x_interp = lambda x: (x - 0) * (self.x_max - self.x_min) / (self.x_cells - 0) + self.x_min
+        self.y_interp = lambda y: (y - 0) * (self.y_lims[1] - self.y_lims[0]) / (self.y_cells - 0) + self.y_lims[0]
+        self.x_interp = lambda x: (x - 0) * (self.x_lims[1] - self.x_lims[0]) / (self.x_cells - 0) + self.x_lims[0]
 
         # Define mapping from observation-space to cell-space.
-        self.y_interp_inv = lambda y: (y - self.y_min) * (self.y_cells - 0) / (self.y_max - self.y_min) + 0
-        self.x_interp_inv = lambda x: (x - self.x_min) * (self.x_cells - 0) / (self.x_max - self.x_min) + 0
+        self.y_interp_inv = lambda y: (y - self.y_lims[0]) * (self.y_cells - 0) / (self.y_lims[1] - self.y_lims[0]) + 0
+        self.x_interp_inv = lambda x: (x - self.x_lims[0]) * (self.x_cells - 0) / (self.x_lims[1] - self.x_lims[0]) + 0
 
         # Discover start and goal states.
         self.initial_states = []
@@ -73,11 +107,20 @@ class ContinuousRoomsEnvironment(gym.Env):
                     self.terminal_states.append((y, x))
 
     def reset(self, state=None):
+        # It no initial state is specified, randomly select one.
         if state is None:
+            # Randomly select an initial state.
             initial_grid_square = random.choice(self.initial_states)
-            initial_y = random.uniform(initial_grid_square[0], initial_grid_square[0] + 1)
-            initial_x = random.uniform(initial_grid_square[1], initial_grid_square[1] + 1)
-            self.current_state = (initial_y, initial_x)
+
+            # If noisy starts are enabled, start in a random position within the initial state.
+            if self.noisy_starts:
+                initial_y = random.uniform(initial_grid_square[0], initial_grid_square[0] + 1)
+                initial_x = random.uniform(initial_grid_square[1], initial_grid_square[1] + 1)
+                self.current_state = (initial_y, initial_x)
+            # Otherwise, start in the centre of the initial state.
+            else:
+                self.current_state = (initial_grid_square[0] + 0.5, initial_grid_square[1] + 0.5)
+        # Otherwise, use the specified initial state.
         else:
             self.current_state = state
 
@@ -90,8 +133,9 @@ class ContinuousRoomsEnvironment(gym.Env):
 
         current_state = self.current_state
         next_state = self.current_state
-        noise_on_dir = random.uniform(-0.3, 0.0)
-        noise_off_dir = random.uniform(-0.1, 0.1)
+
+        noise_on_dir = random.uniform(self.on_dir_noise_lims[0], self.on_dir_noise_lims[1])
+        noise_off_dir = random.uniform(self.off_dir_noise_lims[0], self.off_dir_noise_lims[1])
 
         # Move the agent.
         if action == 0:  # UP
@@ -103,17 +147,33 @@ class ContinuousRoomsEnvironment(gym.Env):
         elif action == 3:  # RIGHT
             next_state = (current_state[0] + noise_off_dir, current_state[1] + 1 + noise_on_dir)
 
-        reward = 0.0
+        reward = self.movement_penalty
         terminal = False
 
-        # Determine whether next-state is valid and/or a terminal state.
-        if CELL_TYPES_DICT[self.gridworld[math.floor(next_state[0]), math.floor(next_state[1])]] == "wall":
+        # Ensure the agent stays within the gridworld. If they have moved outside, reset to the current state.
+        if next_state[0] < 0 or next_state[0] >= self.y_cells or next_state[1] < 0 or next_state[1] >= self.x_cells:
             next_state = current_state
-        elif CELL_TYPES_DICT[self.gridworld[math.floor(next_state[0]), math.floor(next_state[1])]] == "goal":
-            reward = 1.0
-            terminal = True
+        # Ensure that the agent does not move into a wall. If it does, reset to the current state.
+        elif CELL_TYPES_DICT[self.gridworld[math.floor(next_state[0]), math.floor(next_state[1])]] == "wall":
+            next_state = current_state
+        # If the agent moves more than one cell in a single step, we need to check whether it has "jumped" over a wall.
+        else:
+            # Calculate the midpoint between the current and next state.
+            midpoint = (
+                (current_state[0] + next_state[0]) / 2,
+                (current_state[1] + next_state[1]) / 2,
+            )
+            # If the midpoint is a wall, it means the agent has jumped over a wall. So, reset to the current state.
+            if CELL_TYPES_DICT[self.gridworld[math.floor(midpoint[0]), math.floor(midpoint[1])]] == "wall":
+                next_state = current_state
 
-        reward += -0.01
+        # If the agent has reached the goal, give a reward and set terminal to True.
+        if (
+            not self.explorable
+            and CELL_TYPES_DICT[self.gridworld[math.floor(next_state[0]), math.floor(next_state[1])]] == "goal"
+        ):
+            reward += self.goal_reward
+            terminal = True
 
         self.current_state = next_state
 
@@ -199,51 +259,54 @@ empty_rooms = files(data).joinpath("empty_rooms.txt")
 
 
 class ContinuousFourRooms(ContinuousRoomsEnvironment):
-    def __init__(self, explorable=False, render_mode="human"):
-        super().__init__(room_template_file_path=xu_four_rooms, explorable=explorable, render_mode=render_mode)
+    def __init__(
+        self,
+        x_lims: Tuple[float, float] = (-10.0, 10.0),
+        y_lims: Tuple[float, float] = (-10.0, 10.0),
+        on_dir_noise_lims: Tuple[float, float] = (-0.5, 0.5),
+        off_dir_noise_lims: Tuple[float, float] = (-0.1, 0.1),
+        movement_penalty: float = -0.01,
+        goal_reward: float = 1.0,
+        noisy_starts: bool = False,
+        explorable: bool = False,
+        render_mode: str = "human",
+    ):
+        super().__init__(
+            room_template_file_path=xu_four_rooms,
+            x_lims=x_lims,
+            y_lims=y_lims,
+            on_dir_noise_lims=on_dir_noise_lims,
+            off_dir_noise_lims=off_dir_noise_lims,
+            movement_penalty=movement_penalty,
+            goal_reward=goal_reward,
+            noisy_starts=noisy_starts,
+            explorable=explorable,
+            render_mode=render_mode,
+        )
 
 
 class ContinuousEmptyRooms(ContinuousRoomsEnvironment):
-    def __init__(self, explorable=False, render_mode="human"):
-        super().__init__(room_template_file_path=empty_rooms, explorable=explorable, render_mode=render_mode)
-
-
-if __name__ == "__main__":
-
-    env = ContinuousRoomsEnvironment("simpleenvs/envs/continuous_rooms/data/xu_four_rooms.txt", render_mode="human")
-    env = GymWrapper(env)
-
-    # i = 0
-
-    # while i < 1_000_000:
-
-    #     state, _ = env.reset()
-    #     terminal = False
-
-    #     while not terminal:
-    #         action = env.action_space.sample()
-    #         next_state, reward, terminal, _, _ = env.step(action)
-    #         # print("{}:\t{}, {} --> {}".format(i, state, ACTIONS_DICT[action], next_state))
-    #         state = next_state
-    #         i += 1
-
-    #         if i > 1_000_000:
-    #             break
-
-    # env.close()
-
-    for _ in range(1000):
-
-        state, _ = env.reset()
-        terminal = False
-
-        i = 0
-        while not terminal:
-            # action = env.action_space.sample()
-            action = 1
-            next_state, reward, terminal, _, _ = env.step(action)
-            # print("{}:\t{}, {} --> {}".format(i, state, ACTIONS_DICT[action], next_state))
-            env.render()
-            state = next_state
-            i += 1
-    env.close()
+    def __init__(
+        self,
+        x_lims: Tuple[float, float] = (-10.0, 10.0),
+        y_lims: Tuple[float, float] = (-10.0, 10.0),
+        on_dir_noise_lims: Tuple[float, float] = (-0.5, 0.5),
+        off_dir_noise_lims: Tuple[float, float] = (-0.1, 0.1),
+        movement_penalty: float = -0.01,
+        goal_reward: float = 1.0,
+        noisy_starts: bool = False,
+        explorable: bool = False,
+        render_mode: str = "human",
+    ):
+        super().__init__(
+            room_template_file_path=empty_rooms,
+            x_lims=x_lims,
+            y_lims=y_lims,
+            on_dir_noise_lims=on_dir_noise_lims,
+            off_dir_noise_lims=off_dir_noise_lims,
+            movement_penalty=movement_penalty,
+            goal_reward=goal_reward,
+            noisy_starts=noisy_starts,
+            explorable=explorable,
+            render_mode=render_mode,
+        )

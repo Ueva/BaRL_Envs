@@ -50,7 +50,6 @@ class ExtraItemsDiscreteRoomEnvironment(DiscreteRoomEnvironment):
 
         # Create the modified states array
         modified_states = []
-
         for state in state_space:
             for combination in item_combinations:
                 modified_state = list(state) + list(combination)
@@ -146,6 +145,7 @@ double_reward_room = files(data).joinpath("double_reward_room.txt")
 basic_penalty_room = files(data).joinpath("basic_penalty_room.txt")
 double_penalty_room = files(data).joinpath("double_penalty_room.txt")
 four_rooms_firewall = files(data).joinpath("four_rooms_firewall.txt")
+four_rooms_penalty = files(data).joinpath("four_rooms_penalty.txt")
 
 
 class BasicRewardRoom(ExtraItemsDiscreteRoomEnvironment):
@@ -209,3 +209,14 @@ class FourRoomsFireWall(ExtraItemsDiscreteRoomEnvironment):
 
     def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(four_rooms_firewall, movement_penalty, goal_reward, persistent_items=True)
+
+
+class FourRoomsPenalty(ExtraItemsDiscreteRoomEnvironment):
+    """
+    An instance of four-rooms with an additional penalty of -10 in the bottom left.
+    Goal Reward: +1
+    Movement Penalty: -0.01
+    """
+
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
+        super().__init__(four_rooms_penalty, movement_penalty, goal_reward)

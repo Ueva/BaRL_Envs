@@ -87,12 +87,11 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
             self.current_state = random.choice(self.initial_states)
         else:
             self.current_state = copy.deepcopy(state)
-
         self.current_initial_state = self.current_state
 
         self.is_reset = True
 
-        return (self.current_state[0], self.current_state[1])
+        return self.current_state
 
     def step(self, action, state=None):
         if state is None:
@@ -109,6 +108,21 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
 
     def get_action_space(self):
         return {0, 1, 2, 3}
+
+    def encode(self, state) -> int:
+        y, x = state
+        idx = (self.gridworld.shape[1] * y) + x
+        idx -= np.count_nonzero(self.gridworld.flatten()[:idx] == "#")
+        return int(idx)
+
+    def decode(self, idx):
+        n = 0
+        for state, value in np.ndenumerate(self.gridworld):
+            if CELL_TYPES_DICT[value] == "wall":
+                idx += 1
+            if n == idx:
+                return state
+            n += 1
 
     def get_available_actions(self, state=None):
         """
