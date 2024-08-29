@@ -93,6 +93,7 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
                     self.state_space.add((y, x))
                 elif self.gridworld[y, x].replace("-", "", 1).isnumeric():
                     self.state_space.add((y, x))
+        self.state_space.add(self.terminal_state)
 
     def reset(self, state=None):
         """
