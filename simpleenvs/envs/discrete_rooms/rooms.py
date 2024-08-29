@@ -6,15 +6,14 @@ from simpleoptions import TransitionMatrixBaseEnvironment
 
 from simpleenvs.renderers import RoomRenderer
 
-CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent"}
-
-ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
-
 
 class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
     """
     Class representing a discrete "rooms-like" gridworld, as is commonly seen in the HRL literature.
     """
+
+    CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent"}
+    ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
 
     def __init__(self, room_template_file_path, movement_penalty=-0.001, goal_reward=1.0):
         """
@@ -53,12 +52,12 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
         self.terminal_states = []
         for y in range(self.gridworld.shape[0]):
             for x in range(self.gridworld.shape[1]):
-                if self.gridworld[y, x] not in CELL_TYPES_DICT:
+                if self.gridworld[y, x] not in self.CELL_TYPES_DICT:
                     if not self.gridworld[y, x].replace("-", "", 1).isnumeric():
                         raise ValueError(f"Invalid cell type '{self.gridworld[y, x]}' in room template file.")
-                elif CELL_TYPES_DICT[self.gridworld[y, x]] == "start":
+                elif self.CELL_TYPES_DICT[self.gridworld[y, x]] == "start":
                     self.initial_states.append((y, x))
-                elif CELL_TYPES_DICT[self.gridworld[y, x]] == "goal":
+                elif self.CELL_TYPES_DICT[self.gridworld[y, x]] == "goal":
                     self.terminal_states.append((y, x))
 
     def _initialise_state_space(self):
@@ -66,7 +65,10 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
         self.state_space = set()
         for y in range(self.gridworld.shape[0]):
             for x in range(self.gridworld.shape[1]):
-                if self.gridworld[y, x] in CELL_TYPES_DICT and CELL_TYPES_DICT[self.gridworld[y, x]] != "wall":
+                if (
+                    self.gridworld[y, x] in self.CELL_TYPES_DICT
+                    and self.CELL_TYPES_DICT[self.gridworld[y, x]] != "wall"
+                ):
                     self.state_space.add((y, x))
                 elif self.gridworld[y, x].replace("-", "", 1).isnumeric():
                     self.state_space.add((y, x))
@@ -118,7 +120,7 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
     def decode(self, idx):
         n = 0
         for state, value in np.ndenumerate(self.gridworld):
-            if CELL_TYPES_DICT[value] == "wall":
+            if self.CELL_TYPES_DICT[value] == "wall":
                 idx += 1
             if n == idx:
                 return state
@@ -225,18 +227,18 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
         successor_states = []
         for action in actions:
             next_state = copy.deepcopy(state)
-            if ACTIONS_DICT[action] == "DOWN":
+            if self.ACTIONS_DICT[action] == "DOWN":
                 next_state = (state[0] + 1, state[1])
-            elif ACTIONS_DICT[action] == "UP":
+            elif self.ACTIONS_DICT[action] == "UP":
                 next_state = (state[0] - 1, state[1])
-            elif ACTIONS_DICT[action] == "RIGHT":
+            elif self.ACTIONS_DICT[action] == "RIGHT":
                 next_state = (state[0], state[1] + 1)
-            elif ACTIONS_DICT[action] == "LEFT":
+            elif self.ACTIONS_DICT[action] == "LEFT":
                 next_state = (state[0], state[1] - 1)
             # if next state is a wall return to the current state
             if (
-                self.gridworld[next_state[0]][next_state[1]] in CELL_TYPES_DICT
-                and CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]] == "wall"
+                self.gridworld[next_state[0]][next_state[1]] in self.CELL_TYPES_DICT
+                and self.CELL_TYPES_DICT[self.gridworld[next_state[0]][next_state[1]]] == "wall"
             ):
                 next_state = (state[0], state[1])
 
@@ -244,7 +246,7 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
                 reward = self.goal_reward + self.movement_penalty
             else:
                 if (
-                    self.gridworld[next_state[0]][next_state[1]] not in CELL_TYPES_DICT
+                    self.gridworld[next_state[0]][next_state[1]] not in self.CELL_TYPES_DICT
                     and self.gridworld[next_state[0]][next_state[1]].replace("-", "", 1).isnumeric()
                 ):
                     reward = float(self.gridworld[next_state[0]][next_state[1]]) + self.movement_penalty
