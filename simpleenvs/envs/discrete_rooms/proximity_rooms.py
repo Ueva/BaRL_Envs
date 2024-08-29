@@ -205,7 +205,7 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
         Returns:
             List[Tuple[int]]: The initial state(s) in this environment.
         """
-        return self.initial_state
+        return [self.initial_state]
 
     def get_successors(self, state=None, actions=None):
         if state is None:
