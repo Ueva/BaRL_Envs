@@ -155,6 +155,21 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
         else:
             return ACTIONS_DICT.keys()
 
+    def encode(self, state) -> int:
+        y, x = state
+        idx = (self.gridworld.shape[1] * y) + x
+        idx -= np.count_nonzero(self.gridworld.flatten()[:idx] == "#")
+        return int(idx)
+
+    def decode(self, idx):
+        n = 0
+        for state, value in np.ndenumerate(self.gridworld):
+            if CELL_TYPES_DICT[value] == "wall":
+                idx += 1
+            if n == idx:
+                return state
+            n += 1
+
     def render(self):
         """
         Renders the current environmental state.
