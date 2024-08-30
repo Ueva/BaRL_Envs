@@ -95,7 +95,6 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
                     self.state_space.add((y, x))
                 elif self.gridworld[y, x].replace("-", "", 1).isnumeric():
                     self.state_space.add((y, x))
-        self.state_space.add(self.terminal_state)
 
     def reset(self, state=None):
         """
@@ -125,7 +124,6 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
         if state is None:
             state = self.current_state
         next_state, reward, terminal, info = super().step(action, state)
-
         self.current_state = next_state
 
         if terminal:
