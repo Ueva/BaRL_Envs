@@ -130,7 +130,8 @@ class ProximityRoomEnvironment(TransitionMatrixBaseEnvironment):
 
         if terminal:
             self.is_reset = False
-            reward -= self.distance_penalty_factor * self.distance_to_goal(state)
+            # reward -= self.distance_penalty_factor * self.distance_to_goal(state)
+            reward += self.distance_penalty_factor / (self.distance_to_goal(state) + 1)
 
         return next_state, reward, terminal, info
 
