@@ -280,6 +280,7 @@ class ContinuousFourRooms(ContinuousRoomsEnvironment):
 
 
 class ContinuousEmptyRooms(ContinuousRoomsEnvironment):
+class ContinuousSnakeRoom(ContinuousRoomsEnvironment):
     def __init__(
         self,
         x_lims: Tuple[float, float] = (-10.0, 10.0),
@@ -294,6 +295,7 @@ class ContinuousEmptyRooms(ContinuousRoomsEnvironment):
     ):
         super().__init__(
             room_template_file_path=empty_rooms,
+            room_template_file_path=snake_room,
             x_lims=x_lims,
             y_lims=y_lims,
             on_dir_noise_lims=on_dir_noise_lims,
