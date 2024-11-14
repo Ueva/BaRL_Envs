@@ -93,12 +93,16 @@ class ContinuousRoomsEnvironment(gym.Env):
         self.x_cells = self.gridworld.shape[1]
 
         # Define mapping from cell-space to observation-space.
-        self.y_interp = lambda y: (y - 0) * (self.y_lims[1] - self.y_lims[0]) / (self.y_cells - 0) + self.y_lims[0]
-        self.x_interp = lambda x: (x - 0) * (self.x_lims[1] - self.x_lims[0]) / (self.x_cells - 0) + self.x_lims[0]
+        self.y_interp = lambda y: (y - 0.0) * (self.y_lims[1] - self.y_lims[0]) / (self.y_cells - 0.0) + self.y_lims[0]
+        self.x_interp = lambda x: (x - 0.0) * (self.x_lims[1] - self.x_lims[0]) / (self.x_cells - 0.0) + self.x_lims[0]
 
         # Define mapping from observation-space to cell-space.
-        self.y_interp_inv = lambda y: (y - self.y_lims[0]) * (self.y_cells - 0) / (self.y_lims[1] - self.y_lims[0]) + 0
-        self.x_interp_inv = lambda x: (x - self.x_lims[0]) * (self.x_cells - 0) / (self.x_lims[1] - self.x_lims[0]) + 0
+        self.y_interp_inv = (
+            lambda y: (y - self.y_lims[0]) * (self.y_cells - 0) / (self.y_lims[1] - self.y_lims[0]) + 0.0
+        )
+        self.x_interp_inv = (
+            lambda x: (x - self.x_lims[0]) * (self.x_cells - 0) / (self.x_lims[1] - self.x_lims[0]) + 0.0
+        )
 
         # Discover start and goal states.
         self.initial_states = []
@@ -271,7 +275,8 @@ from importlib.resources import files
 from . import data
 
 xu_four_rooms = files(data).joinpath("xu_four_rooms.txt")
-empty_rooms = files(data).joinpath("empty_rooms.txt")
+empty_room = files(data).joinpath("empty_room.txt")
+snake_room = files(data).joinpath("snake_room.txt")
 
 
 class ContinuousFourRooms(ContinuousRoomsEnvironment):
@@ -301,7 +306,7 @@ class ContinuousFourRooms(ContinuousRoomsEnvironment):
         )
 
 
-class ContinuousEmptyRooms(ContinuousRoomsEnvironment):
+class ContinuousEmptyRoom(ContinuousRoomsEnvironment):
     def __init__(
         self,
         x_lims: Tuple[float, float] = (-10.0, 10.0),
@@ -315,7 +320,34 @@ class ContinuousEmptyRooms(ContinuousRoomsEnvironment):
         render_mode: str = "human",
     ):
         super().__init__(
-            room_template_file_path=empty_rooms,
+            room_template_file_path=empty_room,
+            x_lims=x_lims,
+            y_lims=y_lims,
+            on_dir_noise_lims=on_dir_noise_lims,
+            off_dir_noise_lims=off_dir_noise_lims,
+            movement_penalty=movement_penalty,
+            goal_reward=goal_reward,
+            noisy_starts=noisy_starts,
+            explorable=explorable,
+            render_mode=render_mode,
+        )
+
+
+class ContinuousSnakeRoom(ContinuousRoomsEnvironment):
+    def __init__(
+        self,
+        x_lims: Tuple[float, float] = (-10.0, 10.0),
+        y_lims: Tuple[float, float] = (-10.0, 10.0),
+        on_dir_noise_lims: Tuple[float, float] = (-0.5, 0.5),
+        off_dir_noise_lims: Tuple[float, float] = (-0.1, 0.1),
+        movement_penalty: float = -0.01,
+        goal_reward: float = 1.0,
+        noisy_starts: bool = False,
+        explorable: bool = False,
+        render_mode: str = "human",
+    ):
+        super().__init__(
+            room_template_file_path=snake_room,
             x_lims=x_lims,
             y_lims=y_lims,
             on_dir_noise_lims=on_dir_noise_lims,
