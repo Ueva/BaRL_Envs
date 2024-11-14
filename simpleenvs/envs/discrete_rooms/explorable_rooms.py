@@ -24,6 +24,7 @@ parr_maze = files(data).joinpath("parr_maze.txt")
 parr_mini_maze = files(data).joinpath("parr_mini_maze.txt")
 ramesh_maze = files(data).joinpath("ramesh_maze.txt")
 wide_path = files(data).joinpath("wide_path.txt")
+snake_room = files(data).joinpath("snake_room.txt")
 
 
 class DiscreteExplorableRoomEnvironment(DiscreteRoomEnvironment):
@@ -244,3 +245,14 @@ class ExplorableWidePath(DiscreteExplorableRoomEnvironment):
 
     def __init__(self, movement_penalty=-0.001, goal_reward=1.0):
         super().__init__(wide_path, movement_penalty, goal_reward)
+
+
+class SnakeRoom(DiscreteExplorableRoomEnvironment):
+    """
+    A single-room environment featuring a long, snaking path from the starting state to the goal state.
+    Well-suited to testing learned distance metrics, because the Euclidean distance between two states
+    is often very different to the temporal distance between them.
+    """
+
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
+        super().__init__(snake_room, movement_penalty, goal_reward)
