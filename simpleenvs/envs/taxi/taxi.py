@@ -30,16 +30,17 @@ class TaxiEnvironment(TransitionMatrixBaseEnvironment):
             goal_reward (float, optional): Reward for reaching the goal state. Defaults to 1.0.
             initial_states_order (List[Hashable], optional): List of initial states to use, in order, at the start of each episode. Defaults to None, in which case the initial state where the passenger has not been picked up is randomly sampled at the start of each episode.
         """
+
+        self.action_penalty = action_penalty
+        self.invalid_penalty = invalid_penalty
+        self.goal_reward = goal_reward
+
         self.current_state = None
         self.source_state = None
         self.destination_state = None
         self.terminal = True
 
         self.state_space = set(self.generate_interaction_graph(directed=True).nodes)
-
-        self.action_penalty = action_penalty
-        self.invalid_penalty = invalid_penalty
-        self.goal_reward = goal_reward
 
         self.renderer = None
 
