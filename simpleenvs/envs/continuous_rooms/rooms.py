@@ -73,10 +73,17 @@ class ContinuousRoomsEnvironment(gym.Env):
         # Set initial state variables.
         self.noisy_starts = noisy_starts
 
+        # Store whether the environment should be explorable.
+        self.explorable = explorable
+
         # Rendering variables.
         self.render_mode = render_mode
         self.window = None
         self.clock = None
+
+        # Random number generation.
+        self.rng_step = random.Random()
+        self.rng_initial_states = random.Random()
 
     def _initialise_rooms(self, room_template_file_path, explorable):
         # Load gridworld template file.
@@ -111,12 +118,12 @@ class ContinuousRoomsEnvironment(gym.Env):
         # It no initial state is specified, randomly select one.
         if state is None:
             # Randomly select an initial state.
-            initial_grid_square = random.choice(self.initial_states)
+            initial_grid_square = self.rng_initial_states.choice(self.initial_states)
 
             # If noisy starts are enabled, start in a random position within the initial state.
             if self.noisy_starts:
-                initial_y = random.uniform(initial_grid_square[0], initial_grid_square[0] + 1)
-                initial_x = random.uniform(initial_grid_square[1], initial_grid_square[1] + 1)
+                initial_y = self.rng_initial_states.uniform(initial_grid_square[0], initial_grid_square[0] + 1)
+                initial_x = self.rng_initial_states.uniform(initial_grid_square[1], initial_grid_square[1] + 1)
                 self.current_state = (initial_y, initial_x)
             # Otherwise, start in the centre of the initial state.
             else:
@@ -135,8 +142,8 @@ class ContinuousRoomsEnvironment(gym.Env):
         current_state = self.current_state
         next_state = self.current_state
 
-        noise_on_dir = random.uniform(self.on_dir_noise_lims[0], self.on_dir_noise_lims[1])
-        noise_off_dir = random.uniform(self.off_dir_noise_lims[0], self.off_dir_noise_lims[1])
+        noise_on_dir = self.rng_step.uniform(self.on_dir_noise_lims[0], self.on_dir_noise_lims[1])
+        noise_off_dir = self.rng_step.uniform(self.off_dir_noise_lims[0], self.off_dir_noise_lims[1])
 
         # Move the agent.
         if action == 0:  # UP
@@ -169,7 +176,10 @@ class ContinuousRoomsEnvironment(gym.Env):
                 next_state = current_state
 
         # If the agent has reached the goal, give a reward and set terminal to True.
-        if CELL_TYPES_DICT[self.gridworld[math.floor(next_state[0]), math.floor(next_state[1])]] == "goal":
+        if (
+            not self.explorable
+            and CELL_TYPES_DICT[self.gridworld[math.floor(next_state[0]), math.floor(next_state[1])]] == "goal"
+        ):
             reward += self.goal_reward
             terminal = True
 
@@ -245,6 +255,18 @@ class ContinuousRoomsEnvironment(gym.Env):
         Converts from an observation (coordinates in the range -10 to +10) to a state (coordinates in the cell-space).
         """
         return (self.y_interp_inv(observation[0]), self.x_interp_inv(observation[1]))
+
+    def seed(self, seed: int, seed_step: bool = True, seed_initial_states: bool = True):
+        """
+        Sets a seed for random number generation in the environment.
+
+        Args:
+            seed (int): The random seed to use.
+            seed_step (bool, optional): Whether to seed the RNG for stochasticity applied each time-step. Defaults to True.
+            seed_initial_states (bool, optional): Whether to seed the RNG for stochastically selecting initial states. Defaults to True.
+        """
+        self.rng_step.seed(seed)
+        self.rng_initial_states.seed(seed)
 
 
 # Import room template files.

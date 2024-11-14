@@ -2,6 +2,7 @@ import copy
 import random
 
 from itertools import cycle
+from typing import Hashable, Iterable
 
 from simpleoptions import BaseEnvironment, TransitionMatrixBaseEnvironment
 
@@ -13,13 +14,32 @@ TAXI_RANKS = [0, 3, 20, 24, -1]  # -1 means that the passenger is inside the Tax
 
 
 class TaxiEnvironment(TransitionMatrixBaseEnvironment):
-    def __init__(self, initial_states_order=None):
+    def __init__(
+        self,
+        action_penalty: float = -0.001,
+        invalid_penalty: float = 0.0,
+        goal_reward: float = 1.0,
+        initial_states_order: Iterable[Hashable] = None,
+    ):
+        """
+        Instantiates a new TaxiEnvironment object.
+
+        Args:
+            action_penalty (float, optional): Penalty for each action taken. Defaults to -0.001.
+            invalid_penalty (float, optional): Additional penalty for trying to pick-up or put-down the passenger inappropriately. Defaults to 0.0.
+            goal_reward (float, optional): Reward for reaching the goal state. Defaults to 1.0.
+            initial_states_order (List[Hashable], optional): List of initial states to use, in order, at the start of each episode. Defaults to None, in which case the initial state where the passenger has not been picked up is randomly sampled at the start of each episode.
+        """
         self.current_state = None
         self.source_state = None
         self.destination_state = None
         self.terminal = True
 
         self.state_space = set(self.generate_interaction_graph(directed=True).nodes)
+
+        self.action_penalty = action_penalty
+        self.invalid_penalty = invalid_penalty
+        self.goal_reward = goal_reward
 
         self.renderer = None
 
@@ -192,7 +212,7 @@ class TaxiEnvironment(TransitionMatrixBaseEnvironment):
             taxi_pos, passenger_pos, goal_pos = state
             taxi_x, taxi_y = self._number_to_coords(taxi_pos)
 
-            reward = -0.001
+            reward = self.action_penalty
 
             ## Movement actions.
             # Tries to move right when not blocked.
@@ -214,7 +234,7 @@ class TaxiEnvironment(TransitionMatrixBaseEnvironment):
                 if taxi_pos == TAXI_RANKS[passenger_pos]:
                     passenger_pos = 4
                 else:
-                    reward += -0.001
+                    reward += self.invalid_penalty
 
             ## Putdown action.
             if ACTIONS_DICT[action] == "PUTDOWN":
@@ -222,9 +242,9 @@ class TaxiEnvironment(TransitionMatrixBaseEnvironment):
                 # the passenger location changes to the goal location and the agent receives a reward of +1.0.
                 if taxi_pos == TAXI_RANKS[goal_pos] and TAXI_RANKS[passenger_pos] == -1:
                     passenger_pos = goal_pos
-                    reward += 1.0
+                    reward += self.goal_reward
                 else:
-                    reward += -0.001
+                    reward += self.invalid_penalty
 
             taxi_pos = self._coords_to_number(taxi_x, taxi_y)
             successor_states.append((((taxi_pos, passenger_pos, goal_pos), reward), 1.0 / len(actions)))

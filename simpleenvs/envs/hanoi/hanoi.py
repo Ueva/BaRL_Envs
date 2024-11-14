@@ -2,6 +2,8 @@
 import copy
 import itertools
 
+from typing import Hashable
+
 from simpleoptions.environment import TransitionMatrixBaseEnvironment
 
 from simpleenvs.renderers import HanoiRenderer
@@ -10,14 +12,25 @@ from simpleenvs.renderers import HanoiRenderer
 class HanoiEnvironment(TransitionMatrixBaseEnvironment):
     metadata = {"render.modes": ["human"]}
 
-    def __init__(self, num_disks=4, num_poles=3, start_state=None, goal_state=None):
+    def __init__(
+        self,
+        num_disks: int = 4,
+        num_poles: int = 3,
+        action_penalty: float = -0.001,
+        goal_reward: float = 1.0,
+        start_state: Hashable = None,
+        goal_state: Hashable = None,
+    ):
         """
-        Instantiates a new HanoiEnvironment object with a specified number
-        of disks and poles.
+        Instantiates a new HanoiEnvironment object with a specified number of disks and poles.
 
         Args:
             num_disks (int, optional): Number of poles in the environment. Defaults to 4.
             num_poles (int, optional): Number of disks in the environment. Defaults to 3.
+            action_penalty (float, optional): Penalty for each action taken. Defaults to -0.001.
+            goal_reward (float, optional): Reward for reaching the goal state. Defaults to 1.0.
+            start_state (Hashable, optional): The initial state to use. Defaults to None, in which case the state where all disks are on the leftmost pole is used.
+            goal_state (Hashable, optional): The goal state to use. Defaults to None, in which case the state where all disks are on the rightmost pole is used.
         """
         self.num_disks = num_disks
         self.num_poles = num_poles
@@ -43,6 +56,10 @@ class HanoiEnvironment(TransitionMatrixBaseEnvironment):
             self.goal_state = goal_state
         else:
             self.goal_state = self.num_disks * (self.num_poles - 1,)
+
+        # Define reward function.
+        self.action_penalty = action_penalty
+        self.goal_reward = goal_reward
 
         # Initialise environment state variables.
         self.current_state = None
@@ -83,7 +100,10 @@ class HanoiEnvironment(TransitionMatrixBaseEnvironment):
         return next_state, reward, terminal, info
 
     def render(self, mode="human"):
-        pass
+        if self.renderer is None:
+            self.renderer = HanoiRenderer(self.num_poles, self.num_disks)
+
+        self.renderer.update(self.current_state)
 
     def close(self):
         """
@@ -175,7 +195,7 @@ class HanoiEnvironment(TransitionMatrixBaseEnvironment):
             successor_state[disk_to_move] = dest_pole
             successor_state = tuple(successor_state)
 
-            reward = 1.0 if successor_state == self.goal_state else -0.001
+            reward = self.goal_reward if successor_state == self.goal_state else self.action_penalty
 
             successor_states.append(((successor_state, reward), 1.0 / len(actions)))
 
