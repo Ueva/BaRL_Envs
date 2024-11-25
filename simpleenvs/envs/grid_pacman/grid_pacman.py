@@ -14,13 +14,26 @@ from importlib.resources import files
 
 four_room_layout = files(data).joinpath("four_room.txt")
 
-CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent", "X": "ghost"}
+CELL_TYPES_DICT = {
+    ".": "floor",
+    "#": "wall",
+    "S": "start",
+    "G": "goal",
+    "A": "agent",
+    "X": "ghost",
+}
 
 ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
 
 
 class GridPacManEnvironment(BaseEnvironment):
-    def __init__(self, pacman_template_file, movement_penalty=-1.0, goal_reward=10.0, caught_penalty=-20.0):
+    def __init__(
+        self,
+        pacman_template_file,
+        movement_penalty=-1.0,
+        goal_reward=10.0,
+        caught_penalty=-20.0,
+    ):
         super().__init__()
 
         # Initialise environment variables.
@@ -84,7 +97,13 @@ class GridPacManEnvironment(BaseEnvironment):
                 # Find shortest path from ghost position to agent position.
                 ghost_position = next_ghost_positions[i]
                 shortest_path = random.choice(
-                    list(nx.all_shortest_paths(self.level_graph, source=tuple(ghost_position), target=next_position))
+                    list(
+                        nx.all_shortest_paths(
+                            self.level_graph,
+                            source=tuple(ghost_position),
+                            target=next_position,
+                        )
+                    )
                 )
 
                 # Move ghost along path.
@@ -250,12 +269,19 @@ class GridPacManEnvironment(BaseEnvironment):
 
                 # The ghost takes one step along one of the shortest paths to the agent.
                 for shortest_path in list(
-                    nx.all_shortest_paths(self.level_graph, source=tuple(ghost_position), target=next_position)
+                    nx.all_shortest_paths(
+                        self.level_graph,
+                        source=tuple(ghost_position),
+                        target=next_position,
+                    )
                 ):
                     # Move ghost along path.
                     if len(shortest_path) > 1:
                         ghost_next_step = shortest_path[1]
-                        next_ghost_positions[i] = [ghost_next_step[0], ghost_next_step[1]]
+                        next_ghost_positions[i] = [
+                            ghost_next_step[0],
+                            ghost_next_step[1],
+                        ]
 
                     # Build the state tuples.
                     next_state = next_position
