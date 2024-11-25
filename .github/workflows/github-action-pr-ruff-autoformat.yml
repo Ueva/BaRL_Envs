@@ -22,7 +22,7 @@ jobs:
         run: pip install ruff
 
       - name: Auto-Format Code
-        run: ruff check . --fix
+        run: ruff format . --line-length 120
 
       - name: Commit and Push Changes
         run: |
