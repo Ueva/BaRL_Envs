@@ -67,7 +67,11 @@ class HanoiRenderer(object):
         ]
 
     def _draw_pole(self, pole_x):
-        pygame.draw.rect(self.display_window, POLE_COLOUR, (pole_x - POLE_WIDTH // 2, POLE_Y, POLE_WIDTH, POLE_HEIGHT))
+        pygame.draw.rect(
+            self.display_window,
+            POLE_COLOUR,
+            (pole_x - POLE_WIDTH // 2, POLE_Y, POLE_WIDTH, POLE_HEIGHT),
+        )
 
     def _draw_disks(self, pole_x, disks_on_pole):
         for i, disk in enumerate(sorted(disks_on_pole, reverse=False)):
