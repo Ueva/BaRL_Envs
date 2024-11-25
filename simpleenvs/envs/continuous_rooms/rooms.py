@@ -4,9 +4,10 @@ import pygame
 import numpy as np
 import gymnasium as gym
 
-from simpleoptions.function_approximation import GymWrapper
-
+from importlib.resources import files
 from typing import Tuple
+
+from . import data
 
 CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent"}
 
@@ -298,10 +299,6 @@ class ContinuousRoomsEnvironment(gym.Env):
 
 
 # Import room template files.
-from importlib.resources import files
-
-from . import data
-
 xu_four_rooms = files(data).joinpath("xu_four_rooms.txt")
 empty_room = files(data).joinpath("empty_room.txt")
 snake_room = files(data).joinpath("snake_room.txt")

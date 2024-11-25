@@ -1,5 +1,3 @@
-import pytest
-
 from simpleenvs.envs.discrete_rooms import XuFourRooms
 
 
@@ -55,8 +53,8 @@ def test_get_successors():
 def test_is_terminal():
     env = XuFourRooms()
 
-    assert env.is_state_terminal((4, 2)) == False
-    assert env.is_state_terminal((10, 10)) == True
+    assert not env.is_state_terminal((4, 2))
+    assert env.is_state_terminal((10, 10))
 
 
 def test_state_space():

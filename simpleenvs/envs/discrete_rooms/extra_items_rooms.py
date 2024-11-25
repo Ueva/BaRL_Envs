@@ -1,12 +1,14 @@
 import copy
 
 from itertools import product
+from importlib.resources import files
 
 from simpleenvs.envs.discrete_rooms import (
     DiscreteRoomEnvironment,
     CELL_TYPES_DICT,
     ACTIONS_DICT,
 )
+from . import data
 
 
 class ExtraItemsDiscreteRoomEnvironment(DiscreteRoomEnvironment):
@@ -135,11 +137,6 @@ class ExtraItemsDiscreteRoomEnvironment(DiscreteRoomEnvironment):
 
 
 # Import room template files.
-from importlib.resources import files
-
-from . import data
-
-
 basic_reward_room = files(data).joinpath("basic_reward_room.txt")
 double_reward_room = files(data).joinpath("double_reward_room.txt")
 basic_penalty_room = files(data).joinpath("basic_penalty_room.txt")

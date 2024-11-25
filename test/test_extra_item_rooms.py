@@ -1,4 +1,3 @@
-import numpy as np
 import pytest
 from simpleenvs.envs.discrete_rooms import (
     BasicRewardRoom,
@@ -60,12 +59,12 @@ class TestBasicRewardRoom:
         assert not done
 
     def test_get_successors_item(self):
-        s = self.env.get_successors((9, 2, 1))
-        assert len(s) == 4
-        assert (((10, 2, 1), -0.001), 0.25) in s
-        assert (((8, 2, 1), -0.001), 0.25) in s
-        assert (((9, 1, 1), -0.001), 0.25) in s
-        assert (((9, 3, 1), -0.001), 0.25) in s
+        state = self.env.get_successors((9, 2, 1))
+        assert len(state) == 4
+        assert (((10, 2, 1), -0.001), 0.25) in state
+        assert (((8, 2, 1), -0.001), 0.25) in state
+        assert (((9, 1, 1), -0.001), 0.25) in state
+        assert (((9, 3, 1), -0.001), 0.25) in state
 
     def test_get_item_locations(self):
         assert self.env.get_item_locations() == [(10, 2)]
@@ -86,12 +85,12 @@ class TestBasicRewardRoom:
         assert not done
 
     def test_expected_state_path(self):
-        state = self.env.reset((9, 2))
+        _ = self.env.reset((9, 2))
         ns, r, _, _ = self.env.step(1)
         assert ns == (10, 2, 1)
         assert r == 9.999
 
-        state = self.env.reset((10, 9))
+        _ = self.env.reset((10, 9))
         ns, r, d, _ = self.env.step(3)
         assert ns == (10, 10)
         assert r == 1
@@ -113,19 +112,19 @@ class TestDoubleRewardRoom:
         assert (2, 2) in self.env.initial_states
 
     def test_extended_state_space(self):
-        state = self.env.reset((9, 2))
+        _ = self.env.reset((9, 2))
         ns, r, d, _ = self.env.step(1)
         assert ns == (10, 2, 0, 1)
         assert r == 9.999
         assert not d
 
-        state = self.env.reset((3, 10, 0, 1))
+        _ = self.env.reset((3, 10, 0, 1))
         ns, r, d, _ = self.env.step(0)
         assert ns == (2, 10, 1, 1)
         assert r == 9.999
         assert not d
 
-        state = self.env.reset((9, 10, 1, 1))
+        _ = self.env.reset((9, 10, 1, 1))
         ns, r, d, _ = self.env.step(1)
         assert ns == (10, 10, 1, 1)
         assert r == 1
@@ -146,6 +145,7 @@ class TestBasicPenaltyRoom:
 
     def test_successor_reward(self):
         successors = self.env.get_successors((9, 2))
+
         assert len(successors) == 4
         assert (((8, 2), -0.001), 0.25) in successors
         assert (((10, 2, 1), -10.001), 0.25) in successors
@@ -155,6 +155,7 @@ class TestBasicPenaltyRoom:
     def test_collect_reward(self):
         state = self.env.reset((9, 2))
         state, reward, done, _ = self.env.step(1)
+
         assert state == (10, 2, 1)
         assert reward == -10.001
         assert not done
@@ -190,13 +191,14 @@ class TestDoublePenaltyRoom:
         assert (((10, 2, 0, 1), -10.001), 0.25) in successors
         assert (((9, 1), -0.001), 0.25) in successors
         assert (((9, 3), -0.001), 0.25) in successors
-        state = self.env.reset(state=(9, 2))
+
+        _ = self.env.reset(state=(9, 2))
         ns, r, _, _ = self.env.step(1)
         assert ns == (10, 2, 0, 1)
         assert r == -10.001
 
         # pick up the second penalty
-        state = self.env.reset(state=(2, 9))
+        _ = self.env.reset(state=(2, 9))
         ns, r, _, _ = self.env.step(3)
         assert ns == (2, 10, 1)
         assert r == -10.001
@@ -239,7 +241,7 @@ class TestPersistentPenaltyRoom:
         assert (((5, 5), -0.001), 0.25) in successors
 
         # visit the penalty
-        state = self.env.reset(state=(2, 6))
+        _ = self.env.reset(state=(2, 6))
         ns, r, _, _ = self.env.step(3)
         assert ns == (2, 7)
         assert r == -50.001
@@ -263,7 +265,7 @@ class TestFourRoomsPenalty:
     def test_state_space_init(self):
         assert (10, 2) not in self.env.state_space
         assert (10, 2, 1) in self.env.state_space
-        print(f"transition matrix:")
+        print("transition matrix:")
         for k, v in self.env.transition_matrix.items():
             print(f"{k} : {v}")
         tm_states = set([k[0] for k in self.env.transition_matrix.keys()])

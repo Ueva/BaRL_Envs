@@ -1,15 +1,11 @@
 import copy
 import random
 import itertools
-
-from collections import defaultdict
-
 import numpy as np
-import networkx as nx
 
 from itertools import cycle
 
-from simpleoptions import BaseEnvironment, TransitionMatrixBaseEnvironment
+from simpleoptions import TransitionMatrixBaseEnvironment
 
 from simpleenvs.utils import reduce_prob_tuples
 

@@ -233,7 +233,7 @@ class GridPacManEnvironment(BaseEnvironment):
         if state is None:
             state = self.position
             ghost_positions = self.ghost_positions
-            for ghost_position in next_ghost_positions:
+            for ghost_position in ghost_positions:
                 state = state + tuple(ghost_position)
         else:
             position = (state[0], state[1])

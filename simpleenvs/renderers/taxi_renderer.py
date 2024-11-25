@@ -1,5 +1,9 @@
 import pygame
-from pygame.locals import *
+
+from importlib.resources import files
+
+from . import taxi_renderer_resources
+
 
 # Colour Constants.
 WHITE = (255, 255, 255)
@@ -24,11 +28,7 @@ LOCATIONS = {
 
 TAXI_RANKS = [0, 3, 20, 24, -1]
 
-# # Import texture files.
-from importlib.resources import files
-
-from . import taxi_renderer_resources
-
+# Import texture files.
 taxi_full_path = files(taxi_renderer_resources).joinpath("taxi_full.png")
 taxi_empty_path = files(taxi_renderer_resources).joinpath("taxi_empty.png")
 passenger_path = files(taxi_renderer_resources).joinpath("passenger.png")
