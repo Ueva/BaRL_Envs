@@ -1,11 +1,7 @@
-import sys
-
-import numpy as np
+import pygame
 
 from copy import deepcopy
 
-import pygame
-from pygame.locals import *
 
 # Colour Constants.
 WHITE = (255, 255, 255)
@@ -28,7 +24,6 @@ TILESIZE = 8
 
 class RoomRenderer(object):
     def __init__(self, room_layout, start_state=None, goal_states=None):
-
         self._update_room_layout(room_layout, start_state, goal_states)
 
         # Initialise pygame and display window.

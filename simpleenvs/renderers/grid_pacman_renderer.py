@@ -1,11 +1,6 @@
 import sys
-
-import numpy as np
-
-from copy import deepcopy
-
 import pygame
-from pygame.locals import *
+
 
 # Colour Constants.
 WHITE = (255, 255, 255)
@@ -24,7 +19,14 @@ GOAL = "G"
 AGENT = "A"
 GHOST = "X"
 
-colours = {FLOOR: BLACK, WALL: BLUE, AGENT: YELLOW, START: RED, GOAL: GREEN, GHOST: AQUA}
+colours = {
+    FLOOR: BLACK,
+    WALL: BLUE,
+    AGENT: YELLOW,
+    START: RED,
+    GOAL: GREEN,
+    GHOST: AQUA,
+}
 
 TILESIZE = 16
 
@@ -50,7 +52,14 @@ class GridPacManRenderer(object):
                 if self.level[y][x] == GHOST:
                     self.level[y][x] = FLOOR
 
-    def update(self, agent_position, ghost_positions, level_layout, start_state=None, goal_states=None):
+    def update(
+        self,
+        agent_position,
+        ghost_positions,
+        level_layout,
+        start_state=None,
+        goal_states=None,
+    ):
         pygame.event.get()
 
         self._update_room_layout(level_layout, start_state, goal_states)

@@ -2,7 +2,14 @@ from simpleenvs.envs.hanoi import HanoiEnvironment
 
 
 class ExplorableHanoiEnvironment(HanoiEnvironment):
-    def __init__(self, num_disks=4, num_poles=3, action_penalty=-0.001, goal_reward=1.0, start_state=None):
+    def __init__(
+        self,
+        num_disks=4,
+        num_poles=3,
+        action_penalty=-0.001,
+        goal_reward=1.0,
+        start_state=None,
+    ):
         super(ExplorableHanoiEnvironment, self).__init__(
             num_disks=num_disks,
             num_poles=num_poles,

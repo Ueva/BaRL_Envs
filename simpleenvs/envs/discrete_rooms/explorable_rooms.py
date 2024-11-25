@@ -5,8 +5,8 @@ from simpleenvs.envs.discrete_rooms.rooms import CELL_TYPES_DICT
 
 # Import room template files.
 from importlib.resources import files
-
 from . import data
+
 
 default_two_room = files(data).joinpath("two_rooms.txt")
 default_six_room = files(data).joinpath("six_rooms.txt")

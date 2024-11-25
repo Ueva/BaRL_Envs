@@ -4,9 +4,10 @@ import pygame
 import numpy as np
 import gymnasium as gym
 
-from simpleoptions.function_approximation import GymWrapper
-
+from importlib.resources import files
 from typing import Tuple
+
+from . import data
 
 CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent"}
 
@@ -14,7 +15,6 @@ ACTIONS_DICT = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
 
 
 class ContinuousRoomsEnvironment(gym.Env):
-
     metadata = {"render.modes": ["human", "rgb_array"]}
 
     def __init__(
@@ -127,7 +127,10 @@ class ContinuousRoomsEnvironment(gym.Env):
                 self.current_state = (initial_y, initial_x)
             # Otherwise, start in the centre of the initial state.
             else:
-                self.current_state = (initial_grid_square[0] + 0.5, initial_grid_square[1] + 0.5)
+                self.current_state = (
+                    initial_grid_square[0] + 0.5,
+                    initial_grid_square[1] + 0.5,
+                )
         # Otherwise, use the specified initial state.
         else:
             self.current_state = state
@@ -135,7 +138,6 @@ class ContinuousRoomsEnvironment(gym.Env):
         return self._get_observation(), {}
 
     def step(self, action, state=None):
-
         if state is None:
             state = self.current_state
 
@@ -147,13 +149,25 @@ class ContinuousRoomsEnvironment(gym.Env):
 
         # Move the agent.
         if action == 0:  # UP
-            next_state = (current_state[0] - 1 - noise_on_dir, current_state[1] + noise_off_dir)
+            next_state = (
+                current_state[0] - 1 - noise_on_dir,
+                current_state[1] + noise_off_dir,
+            )
         elif action == 1:  # DOWN
-            next_state = (current_state[0] + 1 + noise_on_dir, current_state[1] + noise_off_dir)
+            next_state = (
+                current_state[0] + 1 + noise_on_dir,
+                current_state[1] + noise_off_dir,
+            )
         elif action == 2:  # LEFT
-            next_state = (current_state[0] + noise_off_dir, current_state[1] - 1 - noise_on_dir)
+            next_state = (
+                current_state[0] + noise_off_dir,
+                current_state[1] - 1 - noise_on_dir,
+            )
         elif action == 3:  # RIGHT
-            next_state = (current_state[0] + noise_off_dir, current_state[1] + 1 + noise_on_dir)
+            next_state = (
+                current_state[0] + noise_off_dir,
+                current_state[1] + 1 + noise_on_dir,
+            )
 
         reward = self.movement_penalty
         terminal = False
@@ -212,17 +226,32 @@ class ContinuousRoomsEnvironment(gym.Env):
         for x in range(self.x_cells):
             for y in range(self.y_cells):
                 if CELL_TYPES_DICT[self.gridworld[y, x]] == "wall":
-                    pygame.draw.rect(canvas, (0, 0, 0), (x * tile_size, y * tile_size, tile_size, tile_size))
+                    pygame.draw.rect(
+                        canvas,
+                        (0, 0, 0),
+                        (x * tile_size, y * tile_size, tile_size, tile_size),
+                    )
                 elif CELL_TYPES_DICT[self.gridworld[y, x]] == "start":
-                    pygame.draw.rect(canvas, (0, 255, 0), (x * tile_size, y * tile_size, tile_size, tile_size))
+                    pygame.draw.rect(
+                        canvas,
+                        (0, 255, 0),
+                        (x * tile_size, y * tile_size, tile_size, tile_size),
+                    )
                 elif CELL_TYPES_DICT[self.gridworld[y, x]] == "goal":
-                    pygame.draw.rect(canvas, (255, 0, 0), (x * tile_size, y * tile_size, tile_size, tile_size))
+                    pygame.draw.rect(
+                        canvas,
+                        (255, 0, 0),
+                        (x * tile_size, y * tile_size, tile_size, tile_size),
+                    )
 
         # Draw Agent.
         pygame.draw.circle(
             canvas,
             (0, 0, 255),
-            (int(self.current_state[1] * tile_size), int(self.current_state[0] * tile_size)),
+            (
+                int(self.current_state[1] * tile_size),
+                int(self.current_state[0] * tile_size),
+            ),
             agent_size,
         )
 
@@ -270,10 +299,6 @@ class ContinuousRoomsEnvironment(gym.Env):
 
 
 # Import room template files.
-from importlib.resources import files
-
-from . import data
-
 xu_four_rooms = files(data).joinpath("xu_four_rooms.txt")
 empty_room = files(data).joinpath("empty_room.txt")
 snake_room = files(data).joinpath("snake_room.txt")

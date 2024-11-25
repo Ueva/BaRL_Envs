@@ -2,9 +2,12 @@ import copy
 import random
 import numpy as np
 
+from importlib.resources import files
+
 from simpleoptions import TransitionMatrixBaseEnvironment
 
 from simpleenvs.renderers import RoomRenderer
+from . import data
 
 CELL_TYPES_DICT = {".": "floor", "#": "wall", "S": "start", "G": "goal", "A": "agent"}
 
@@ -257,10 +260,6 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
 
 
 # Import room template files.
-from importlib.resources import files
-
-from . import data
-
 default_two_room = files(data).joinpath("two_rooms.txt")
 default_six_room = files(data).joinpath("six_rooms.txt")
 default_nine_room = files(data).joinpath("nine_rooms.txt")

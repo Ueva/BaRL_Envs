@@ -4,7 +4,7 @@ import random
 from itertools import cycle
 from typing import Hashable, Iterable
 
-from simpleoptions import BaseEnvironment, TransitionMatrixBaseEnvironment
+from simpleoptions import TransitionMatrixBaseEnvironment
 
 from simpleenvs.renderers import TaxiRenderer
 

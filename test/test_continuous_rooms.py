@@ -37,8 +37,8 @@ def test_step():
 
     # Check that the reward, terminal, and truncated values are as expected.
     assert reward == -0.01
-    assert terminal == False
-    assert truncated == False
+    assert not terminal
+    assert not truncated
 
     # Check that the next state is within the expected range.
     expected_y_range = (state[0] + 1.0 - 0.5, state[0] + 1.0 + 0.5)
@@ -66,8 +66,8 @@ def test_terminal():
 
     # Check that the reward, terminal, and truncated values are as expected.
     assert reward == 1.0 + -0.01
-    assert terminal == True
-    assert truncated == False
+    assert terminal
+    assert not truncated
 
     # Check that the next state is within the expected range.
     expected_y_range = (9.5 + 1.0 - 0.5, 9.5 + 1.0 + 0.5)
