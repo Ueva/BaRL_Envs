@@ -4,7 +4,7 @@ import pygame
 import numpy as np
 import networkx as nx
 
-from typing import List, Tuple
+from typing import List, Tuple, Hashable
 
 # This class generates a "shortcut" world.
 # The world consists of a series of k grids, each progressively smaller (but costlier to move around) than the last.
@@ -34,48 +34,47 @@ class ShortcutGenerator:
         self.grid_costs = grid_costs
         self.connection_prob = connection_prob
         self.min_connections = min_connections
-        self.blocker_prob = blocker_probs
+        self.blocker_probs = blocker_probs
 
-        self.grids: List[nx.DiGraph] = []
+        self.grids: List[nx.Graph] = []
         self.connections: List[int, Tuple[int, int], int, Tuple[int, int]] = []
 
     def generate_grids(self):
-
         # Create a fully-connected graph for each grid. Each cell is a node, connected to adjacent cells by edges.
         self.grids = [
-            nx.grid_2d_graph(self.grid_sizes[i][0], self.grid_sizes[i][1], create_using=nx.DiGraph)
+            nx.grid_2d_graph(self.grid_sizes[i][0], self.grid_sizes[i][1], create_using=nx.Graph)
             for i in range(self.num_grids)
         ]
 
-        print(self.grids)
-
         # Probabilistically remove some nodes from each grid.
-        for i in range(self.num_grids):
-            # Iterate over all nodes in the graph in a random order.
-            nodes = list(self.grids[i].nodes())
-            random.shuffle(nodes)
-            for node in nodes:
-                # Remove them with probability blocker_prob...
-                if random.random() < self.blocker_prob[i]:
-                    # ...only if doing so does not cause the graph to become disconnected.
+        for i in range(len(self.grids)):
+            num_nodes_to_remove = int(self.blocker_probs[i] * self.grids[i].order())
+            if num_nodes_to_remove > 0:
+                self.grids[i], _ = self._remove_n_nodes_preserving_connectivity(self.grids[i], num_nodes_to_remove)
 
-                    if self._is_connected_after_removal(self.grids[i], node):
-                        self.grids[i].remove_node(node)
+        # for i in range(self.num_grids):
+        #     # Iterate over all nodes in the graph in a random order.
+        #     nodes = list(self.grids[i].nodes())
+        #     random.shuffle(nodes)
+        #     for node in nodes:
+        #         # Attempt to remove them with probability blocker_prob.
+        #         if random.random() < self.blocker_probs[i]:
+        #             self._remove_node_preserving_connectivity(self.grids[i], node)
 
         # Sanity check: ensure that each grid is still connected.
         for i in range(self.num_grids):
-            assert nx.is_strongly_connected(self.grids[i])
+            print(f"Grid {i} has {len(list(nx.connected_components(self.grids[i])))} connected components.")
+            nx.write_gexf(self.grids[i], f"grid_{i}.gexf")
+            assert nx.is_connected(self.grids[i])
 
         # Generate connections between grids.
         for i in range(1, self.num_grids):
             num_connections = 0
             while num_connections < self.min_connections[i - 1]:
-
                 # Iterate over all cells in the grid in a random order.
                 nodes = list(self.grids[i - 1].nodes())
                 random.shuffle(nodes)
                 for node in nodes:
-
                     # With some small probability, we want to connect a cell from a lower grid to a cell in a higher grid.
                     # The connections should take into account relative positions on each of the grids. For instance, a cell
                     # near the top right of a lower grid should connect to a cell near the top right of a higher grid (with some noise).
@@ -117,6 +116,12 @@ class ShortcutGenerator:
             lower_grid, (lower_x, lower_y), higher_grid, (higher_x, higher_y) = connection
             self.world.add_edge((lower_grid, (lower_x, lower_y)), (higher_grid, (higher_x, higher_y)))
             self.world.add_edge((higher_grid, (higher_x, higher_y)), (lower_grid, (lower_x, lower_y)))
+
+        # Convert the world to an directed graph.
+        self.world = nx.DiGraph(self.world)
+
+        # Sanity check: ensure that the world is still connected.
+        assert nx.is_strongly_connected(self.world)
 
         # Save the graph as a gexf.
         nx.write_gexf(self.world, "shortcut_world.gexf")
@@ -190,6 +195,7 @@ class ShortcutGenerator:
                     grid_offset + higher_x * cell_size + cell_size // 2,
                     higher_grid * grid_spacing + base_height_higher + higher_y * cell_size + cell_size // 2,
                 ),
+                width=2,
             )
 
         # Update the display.
@@ -206,27 +212,49 @@ class ShortcutGenerator:
         random.seed(seed)
         np.random.seed(seed)
 
-    def _is_connected_after_removal(self, graph, node) -> bool:
-        """
-        Checks whether a graph is still connected after removing a given node.
+    def _remove_n_nodes_preserving_connectivity(self, graph: nx.Graph, n: int) -> Tuple[nx.Graph, int]:
+        # Ensure the graph has at least two nodes.
+        if graph.order() < 2:
+            raise ValueError("Cannot remove nodes from graph with fewer than two nodes.")
 
-        Args:
-            graph (_type_): The original graph.
-            node (_type_): The node to remove.
+        # Ensure the number of nodes to remove is valid.
+        if n < 1:
+            raise ValueError("Number of nodes to remove must be at least one.")
 
-        Returns:
-            bool: Whether the graph is still connected after removing the node.
-        """
-        new_graph = graph.copy()
-        new_graph.remove_node(node)
+        # Ensure the number of nodes to remove is not greater than the number of nodes in the graph.
+        if n >= graph.order():
+            raise ValueError("Number of nodes to remove must be less than the number of nodes in the graph.")
 
-        if nx.is_directed(graph):
-            return nx.is_strongly_connected(new_graph)
-        else:
-            return nx.is_connected(new_graph)
+        # Ensure that the graph is connected to begin with.
+        if not nx.is_connected(graph):
+            raise ValueError("Input graph must be connected.")
+
+        # Pre-compute the initial set of articulation points.
+        articulation_points = set(nx.articulation_points(graph))
+        removed_nodes_count = 0
+
+        for _ in range(n):
+            removable_nodes = [node for node in graph.nodes() if node not in articulation_points]
+
+            # If no removable nodes are left, terminate early.
+            if len(removable_nodes) == 0:
+                break
+
+            # Remove a random removable node.
+            node_to_remove = random.choice(removable_nodes)
+            graph.remove_node(node_to_remove)
+            removed_nodes_count += 1
+
+            # Update the set of articulation points.
+            if graph.order() > 1:
+                articulation_points = set(nx.articulation_points(graph))
+            else:
+                articulation_points = set()
+
+        return graph, removed_nodes_count
 
 
 if __name__ == "__main__":
-    generator = ShortcutGenerator(3, [(40, 40), (20, 20), (3, 3)], [-1, -3, -5], 0.01, [8, 4], [0.6, 0.4, 0.0])
+    generator = ShortcutGenerator(3, [(50, 50), (20, 20), (3, 3)], [-1, -3, -5], 0.01, [8, 4], [0.5, 0.3, 0.0])
     generator.generate_grids()
     generator.render()
