@@ -4,7 +4,7 @@ import pygame
 import numpy as np
 import networkx as nx
 
-from typing import List, Tuple, Hashable
+from typing import List, Tuple
 
 # This class generates a "shortcut" world.
 # The world consists of a series of k grids, each progressively smaller (but costlier to move around) than the last.
@@ -138,11 +138,11 @@ class ShortcutGenerator:
         pygame.display.set_caption("Shortcut World")
 
         # Set up some colours.
+        # BLACK = (0, 0, 0)
         WHITE = (255, 255, 255)
-        BLACK = (0, 0, 0)
         RED = (255, 0, 0)
-        GREEN = (0, 255, 0)
-        BLUE = (0, 0, 255)
+        # GREEN = (0, 255, 0)
+        # BLUE = (0, 0, 255)
 
         # Set up some parameters for rendering.
         cell_size = 8
