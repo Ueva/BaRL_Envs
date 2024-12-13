@@ -282,6 +282,7 @@ parr_maze = files(data).joinpath("parr_maze.txt")
 parr_mini_maze = files(data).joinpath("parr_mini_maze.txt")
 ramesh_maze = files(data).joinpath("ramesh_maze.txt")
 wide_path = files(data).joinpath("wide_path.txt")
+corridor = files(data).joinpath("corridor.txt")
 
 
 class TwoRooms(DiscreteRoomEnvironment):
@@ -462,3 +463,12 @@ class WidePath(DiscreteRoomEnvironment):
 
     def __init__(self, movement_penalty=-0.001, goal_reward=1):
         super().__init__(wide_path, movement_penalty, goal_reward)
+
+
+class Corridor(DiscreteRoomEnvironment):
+    """
+    A single-cell wide corridor environment.
+    """
+
+    def __init__(self, movement_penalty=-0.001, goal_reward=1):
+        super().__init__(corridor, movement_penalty, goal_reward)

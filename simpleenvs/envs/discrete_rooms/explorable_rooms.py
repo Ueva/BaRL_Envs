@@ -24,6 +24,7 @@ parr_maze = files(data).joinpath("parr_maze.txt")
 parr_mini_maze = files(data).joinpath("parr_mini_maze.txt")
 ramesh_maze = files(data).joinpath("ramesh_maze.txt")
 wide_path = files(data).joinpath("wide_path.txt")
+corridor = files(data).joinpath("corridor.txt")
 
 
 class DiscreteExplorableRoomEnvironment(DiscreteRoomEnvironment):
@@ -244,3 +245,14 @@ class ExplorableWidePath(DiscreteExplorableRoomEnvironment):
 
     def __init__(self, movement_penalty=-0.001, goal_reward=1.0):
         super().__init__(wide_path, movement_penalty, goal_reward)
+
+
+class ExplorableCorridor(DiscreteExplorableRoomEnvironment):
+    """
+    A single-grid wide corridor environment.
+    Goal Reward: +1
+    Movement Penalty: -0.001
+    """
+
+    def __init__(self, movement_penalty=-0.001, goal_reward=1.0):
+        super().__init__(corridor, movement_penalty, goal_reward)
