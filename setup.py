@@ -31,6 +31,7 @@ setuptools.setup(
             "envs/discrete_rooms/data/parr_maze.txt",
             "envs/discrete_rooms/data/parr_mini_maze.txt",
             "envs/discrete_rooms/data/ramesh_maze.txt",
+            "envs/discrete_rooms/data/corridor.txt",
             "envs/continuous_rooms/data/xu_four_rooms.txt",
             "envs/continuous_rooms/data/empty_rooms.txt",
             "renderers/taxi_renderer_resources/taxi_full.png",
