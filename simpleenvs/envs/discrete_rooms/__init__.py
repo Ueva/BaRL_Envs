@@ -27,6 +27,7 @@ from simpleenvs.envs.discrete_rooms.rooms import ParrMaze
 from simpleenvs.envs.discrete_rooms.rooms import ParrMiniMaze
 from simpleenvs.envs.discrete_rooms.rooms import RameshMaze
 from simpleenvs.envs.discrete_rooms.rooms import WidePath
+from simpleenvs.envs.discrete_rooms.rooms import Corridor
 
 # Explorable Room Layouts.
 from simpleenvs.envs.discrete_rooms.explorable_rooms import ExplorableTwoRooms
@@ -45,6 +46,7 @@ from simpleenvs.envs.discrete_rooms.explorable_rooms import ExplorableParrMaze
 from simpleenvs.envs.discrete_rooms.explorable_rooms import ExplorableParrMiniMaze
 from simpleenvs.envs.discrete_rooms.explorable_rooms import ExplorableRameshMaze
 from simpleenvs.envs.discrete_rooms.explorable_rooms import ExplorableWidePath
+from simpleenvs.envs.discrete_rooms.explorable_rooms import ExplorableCorridor
 
 # Extra Items Rooms.
 from simpleenvs.envs.discrete_rooms.extra_items_rooms import BasicRewardRoom
