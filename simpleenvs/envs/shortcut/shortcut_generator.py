@@ -2,209 +2,223 @@ import random
 import pygame
 
 import numpy as np
+import numpy.typing as npt
 import networkx as nx
 
 from typing import List, Tuple
 
 # This class generates a "shortcut" world.
-# The world consists of a series of k grids, each progressively smaller (but costlier to move around) than the last.
-# The agent must navigate from a start location to a goal location on the first (largest) grid.
-# Some positions on each grid allow the agent to move up or down a level to a different grid. These connections act
-# as shortcuts, allowing the agent to navigate the world in fewer steps.
-# Moving around the different grids can be thought of as using different modes of transport. For instance,
-#    - the first grid can be thought of as walking,
-#    - the second grid can be thought of as driving, and
-#    - the third grid can be thought of as flying.
-# The grids are not always perfectly regular - some cells might be blocked. However, each grid is guarunteed to be
-# fully connected (i.e., there is a path between any two cells). A parameter controls the probability of a cell being blocked.
+# The world consists of a single grid. Each grid cell is connected to its four neighbours (up, down, left, right), unless it is blocked.
+# The agent must navigate from some start cell to some target cell on the grid.
+# Some positions on the grid are designated as "shortcuts". Each shortcut is connected to other shortcuts on the grid, allowing for immediate (but
+# more costly) movement between them. There can be multiple levels of shortcut actions, with each level allowing movement between more distant shortcuts
+# than the last (but costing more to use).
+# Moving aroudn the grid using shortcuts can be thought of as moving around a city using different modes of transport:
+#    - Moving around the grid using primitive actions can be thought of as walking,
+#    - moving around the grid using the level shortcut actions can be thought of as taking the bus, and
+#    - moving around the grid using the second level shortcut actions can be thought of as taking a plane.
+# The grid may not always be regular, and may contain obstacles that block cells. A parameter controls the probability of a cell being blocked.
+# A grid (i.e., a binary matrix) can be passed in, or a random grid of a specific height and width can be generated.
 
 
 class ShortcutGenerator:
     def __init__(
         self,
-        num_grids: int,
-        grid_sizes: List[int],
-        grid_costs: List[int],
-        connection_prob: float,
-        min_connections: List[int],
-        blocker_probs: List[int],
+        grid_height: int = None,
+        grid_width: int = None,
+        blocker_prob: float = 0.0,
+        desired_walkability: float = 0.5,
+        grid: npt.NDArray[np.bool_] = None,
+        num_shortcut_hubs: int = None,
+        shortcut_hubs: List[Tuple[int, int]] = None,
+        shortcut_connections: List[Tuple[int, Tuple[int, int], Tuple[int, int]]] = None,
+        shortcut_hub_radii: List[int] = None,
+        shortcut_hub_costs: List[float] = None,
     ):
-        self.num_grids = num_grids
-        self.grid_sizes = grid_sizes
-        self.grid_costs = grid_costs
-        self.connection_prob = connection_prob
-        self.min_connections = min_connections
-        self.blocker_probs = blocker_probs
+        """
+        Initializes the SingleLevelShortcutGenerator with the given parameters.
 
-        self.grids: List[nx.Graph] = []
-        self.connections: List[int, Tuple[int, int], int, Tuple[int, int]] = []
+        Args:
+            grid (npt.NDArray[np.bool_], optional): A predefined grid to use. Defaults to None.
+            grid_height (int, optional): The height of the grid. Defaults to None.
+            grid_width (int, optional): The width of the grid. Defaults to None.
+            blocker_prob (float, optional): The probability of a cell being blocked. Defaults to 0.0.
+            desired_walkability (float, optional): The minimum proportion of cells that should be walkable. Defaults to 0.5.
+            shortcut_hubs (List[Tuple[int, int]], optional): A list of predefined shortcut hubs. Defaults to None.
+            num_shortcut_hubs (int, optional): The number of shortcut hubs to generate. Defaults to None.
+            shortcut_connections (List[Tuple[int, Tuple[int, int], Tuple[int, int]]], optional): A list of predefined shortcut connections of the form (level, (source coord), (target coord)). Defaults to None.
+            shortcut_hub_radii (List[int], optional): A list of radii for each shortcut hub. Defaults to None.
+            shortcut_hub_costs (List[float], optional): A list of costs for using each shortcut hub. Defaults to None.
 
-    def generate_grids(self):
-        # Create a fully-connected graph for each grid. Each cell is a node, connected to adjacent cells by edges.
-        self.grids = [
-            nx.grid_2d_graph(self.grid_sizes[i][0], self.grid_sizes[i][1], create_using=nx.Graph)
-            for i in range(self.num_grids)
-        ]
+        Raises:
+            ValueError: If both a grid and grid dimensions are provided.
+            ValueError: If neither a grid nor grid dimensions are provided.
+            ValueError: If both shortcut hubs and the number of shortcut hubs are provided.
+            ValueError: If neither shortcut hubs nor the number of shortcut hubs are provided.
+            ValueError: If both shortcut connections and shortcut hub radii are provided.
+            ValueError: If neither shortcut connections nor shortcut hub radii are provided.
+            ValueError: If shortcut hub costs are not provided.
 
-        # Probabilistically remove some nodes from each grid.
-        for i in range(len(self.grids)):
-            num_nodes_to_remove = int(self.blocker_probs[i] * self.grids[i].order())
-            if num_nodes_to_remove > 0:
-                self.grids[i], _ = self._remove_n_nodes_preserving_connectivity(self.grids[i], num_nodes_to_remove)
+        """
 
-        # for i in range(self.num_grids):
-        #     # Iterate over all nodes in the graph in a random order.
-        #     nodes = list(self.grids[i].nodes())
-        #     random.shuffle(nodes)
-        #     for node in nodes:
-        #         # Attempt to remove them with probability blocker_prob.
-        #         if random.random() < self.blocker_probs[i]:
-        #             self._remove_node_preserving_connectivity(self.grids[i], node)
+        # If a grid has been provided, use it.
+        if grid is not None:
+            if grid_height is not None or grid_width is not None:
+                raise ValueError("Please specify either a grid to use, or parameters to generate a grid.")
 
-        # Sanity check: ensure that each grid is still connected.
-        for i in range(self.num_grids):
-            print(f"Grid {i} has {len(list(nx.connected_components(self.grids[i])))} connected components.")
-            nx.write_gexf(self.grids[i], f"grid_{i}.gexf")
-            assert nx.is_connected(self.grids[i])
+            self.grid_height = grid.shape[0]
+            self.grid_width = grid.shape[1]
+            self.grid = grid
+        # Otherwise, generate a grid.
+        else:
+            if grid_height is None or grid_width is None:
+                raise ValueError("Please specify either a grid to use, or parameters to generate a grid.")
 
-        # Generate connections between grids.
-        for i in range(1, self.num_grids):
-            num_connections = 0
-            while num_connections < self.min_connections[i - 1]:
-                # Iterate over all cells in the grid in a random order.
-                nodes = list(self.grids[i - 1].nodes())
-                random.shuffle(nodes)
-                for node in nodes:
-                    # With some small probability, we want to connect a cell from a lower grid to a cell in a higher grid.
-                    # The connections should take into account relative positions on each of the grids. For instance, a cell
-                    # near the top right of a lower grid should connect to a cell near the top right of a higher grid (with some noise).
-                    if random.random() < self.connection_prob:
-                        lower_x, lower_y = node
+            self.grid_height = grid_height
+            self.grid_width = grid_width
+            self.blocker_prob = blocker_prob
+            self.desired_walkability = desired_walkability
+            self.grid = self.generate_grid(grid_width, grid_height, blocker_prob, desired_walkability)
 
-                        lower_grid_size = self.grid_sizes[i - 1]
-                        higher_grid_size = self.grid_sizes[i]
+        # If shortcut hubs have been specified, use them.
+        if shortcut_hubs is not None:
+            if num_shortcut_hubs is not None:
+                raise ValueError(
+                    "Please specify either a list of shortcut hubs to use, or parameters to generate shortcut hubs."
+                )
+            self.shortcut_hubs = shortcut_hubs
+            self.num_shortcut_hubs = len(shortcut_hubs)
+        # Otherwise, generate shortcut hubs.
+        else:
+            if num_shortcut_hubs is None:
+                raise ValueError(
+                    "Please specify either a list of shortcut hubs to use, or specify how many to generate."
+                )
+            self.num_shortcut_hubs = num_shortcut_hubs
+            self.shortcut_hubs = self.generate_shortcut_hubs(num_shortcut_hubs)
 
-                        lower_grid_x_rel = lower_x / lower_grid_size[0]
-                        lower_grid_y_rel = lower_y / lower_grid_size[1]
+        # If shortcut connections have been specified, use them.
+        if shortcut_connections is not None:
+            if shortcut_hub_radii is not None:
+                raise ValueError(
+                    "Please specify either a list of shortcut connections to use, or parameters to generate shortcut connections."
+                )
+            self.shortcut_connections = shortcut_connections
+        # Otherwise, generate shortcut connections.
+        else:
+            if shortcut_hub_radii is None:
+                raise ValueError(
+                    "Please specify either a list of shortcut connections to use, or parameters to generate shortcut connections."
+                )
+            self.shortcut_hub_radii = shortcut_hub_radii
+            self.shortcuts = self.generate_shortcuts(shortcut_hub_radii)
 
-                        higher_x = int(lower_grid_x_rel * higher_grid_size[0] + random.gauss(0, 0.1))
-                        higher_y = int(lower_grid_y_rel * higher_grid_size[1] + random.gauss(0, 0.1))
+        if shortcut_hub_costs is None:
+            ValueError("Please specify the costs of using each level of shortcut actions.")
+            self.shortcut_hub_costs = shortcut_hub_costs
 
-                        # If the higher-level cell is valid, add the connection.
-                        if (higher_x, higher_y) in self.grids[i].nodes():
-                            self.connections.append((i - 1, (lower_x, lower_y), i, (higher_x, higher_y)))
-                            num_connections += 1
+    def generate_grid(
+        self, grid_width: int, grid_height: int, blocker_prob: float, desired_walkability: float
+    ) -> npt.NDArray[np.bool_]:
+        found_valid_grid = False
+        while not found_valid_grid:
+            grid = np.random.rand(self.grid_height, self.grid_width) > self.blocker_prob
 
-        # Construct a graph of the entire world, with each grid and the connections between.
+            # Dilate the cells to form larger, smoother connected regions.
+            grid = self._dilate_grid(grid, num_iterations=20)
 
-        # Add the nodes making up each grid.
-        self.world = nx.DiGraph()
-        for i in range(self.num_grids):
-            for node in self.grids[i].nodes():
-                x, y = node
+            # Isolate the largest connected region.
+            grid, largest_region_size = self._isolate_largest_component(grid)
 
-                # Add the node to the world.
-                self.world.add_node((i, (x, y)))
+            if largest_region_size / (self.grid_height * self.grid_width) >= desired_walkability:
+                found_valid_grid = True
 
-                # Add edges to adjacent nodes in the world.
-                for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:  # Right, left, down, up
-                    if (x + dx, y + dy) in self.grids[i].nodes():
-                        self.world.add_edge((i, (x, y)), (i, (x + dx, y + dy)))
+        return grid
 
-        # Add the connections between grids.
-        for connection in self.connections:
-            lower_grid, (lower_x, lower_y), higher_grid, (higher_x, higher_y) = connection
-            self.world.add_edge((lower_grid, (lower_x, lower_y)), (higher_grid, (higher_x, higher_y)))
-            self.world.add_edge((higher_grid, (higher_x, higher_y)), (lower_grid, (lower_x, lower_y)))
+    def generate_shortcut_hubs(self, num_shortcut_hubs):
+        pass  # TODO: Implement this function.
 
-        # Convert the world to an directed graph.
-        self.world = nx.DiGraph(self.world)
-
-        # Sanity check: ensure that the world is still connected.
-        assert nx.is_strongly_connected(self.world)
-
-        # Save the graph as a gexf.
-        nx.write_gexf(self.world, "shortcut_world.gexf")
+    def generate_shortcuts(self, shortcut_hub_radii):
+        pass  # TODO: Implement this function.
 
     def render(self):
-        # Render the grids and the connections between them using pygame.
-        # Lower-level (larger) grids should be rendered above higher-level (smaller) grids.
-        # Render them as a graph, with each cell as a node and each connection as an edge.
-        # Connections between grids should be rendered as a line connecting the two cells on the different grids.
-        # It should be projected onto the screen as if the grids were stacked on top of each other.
-
         # Set up the pygame window.
         pygame.init()
         pygame.display.set_caption("Shortcut World")
 
         # Set up some colours.
-        # BLACK = (0, 0, 0)
+        BLACK = (0, 0, 0)
         WHITE = (255, 255, 255)
+        GREY = (128, 128, 128)
         RED = (255, 0, 0)
-        # GREEN = (0, 255, 0)
-        # BLUE = (0, 0, 255)
+        GREEN = (0, 255, 0)
+        BLUE = (0, 0, 255)
 
         # Set up some parameters for rendering.
         cell_size = 8
-        grid_spacing = 32
         grid_offset = 32
+        fps = 165
 
-        width = max([size[1] for size in self.grid_sizes]) * cell_size + grid_offset * 2
-        height = (
-            sum([size[0] for size in self.grid_sizes]) * cell_size
-            + grid_spacing * (self.num_grids - 1)
-            + grid_offset * 2
-        )
+        width = self.grid_width * cell_size + 2 * grid_offset
+        height = self.grid_height * cell_size + 2 * grid_offset
 
         screen = pygame.display.set_mode((width, height))
-
-        # Draw the grids.
-        for i in range(self.num_grids):
-            for node in self.grids[i].nodes():
-                x, y = node
-
-                # Draw the cell.
-                base_height = sum([size[0] for size in self.grid_sizes[:i]]) * cell_size + grid_offset
-                pygame.draw.rect(
-                    screen,
-                    WHITE,
-                    (
-                        grid_offset + x * cell_size,
-                        base_height + y * cell_size + grid_spacing * i,
-                        cell_size,
-                        cell_size,
-                    ),
-                )
-
-        # Draw the connections between grids.
-        for connection in self.connections:
-            lower_grid, (lower_x, lower_y), higher_grid, (higher_x, higher_y) = connection
-
-            base_height_lower = sum([size[0] for size in self.grid_sizes[:lower_grid]]) * cell_size + grid_offset
-            base_height_higher = sum([size[0] for size in self.grid_sizes[:higher_grid]]) * cell_size + grid_offset
-
-            # Draw the connection.
-            pygame.draw.line(
-                screen,
-                RED,
-                (
-                    grid_offset + lower_x * cell_size + cell_size // 2,
-                    lower_grid * grid_spacing + base_height_lower + lower_y * cell_size + cell_size // 2,
-                ),
-                (
-                    grid_offset + higher_x * cell_size + cell_size // 2,
-                    higher_grid * grid_spacing + base_height_higher + higher_y * cell_size + cell_size // 2,
-                ),
-                width=2,
-            )
-
-        # Update the display.
-        pygame.display.update()
+        clock = pygame.time.Clock()
 
         # Wait for the user to close the window.
         running = True
         while running:
+            # Limit the frame rate.
+            clock.tick(fps)
+
+            # The background should be grey.
+            screen.fill(GREY)
+
+            # Draw the grid cells, centred on the screen.
+            for y in range(self.grid_height):
+                for x in range(self.grid_width):
+                    if self.grid[y, x]:
+                        pygame.draw.rect(
+                            screen,
+                            WHITE,
+                            pygame.Rect(
+                                grid_offset + x * cell_size,
+                                grid_offset + y * cell_size,
+                                cell_size,
+                                cell_size,
+                            ),
+                        )
+                    else:
+                        pygame.draw.rect(
+                            screen,
+                            BLACK,
+                            pygame.Rect(
+                                grid_offset + x * cell_size,
+                                grid_offset + y * cell_size,
+                                cell_size,
+                                cell_size,
+                            ),
+                        )
+
+            # Update the display.
+            pygame.display.update()
+
+            # Process events.
             for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    # If the user presses escape, stop the loop.
+                    if event.key == pygame.K_ESCAPE:
+                        running = False
+                    # If the user presses the R key, regenerate the grid.
+                    elif event.key == pygame.K_r:
+                        self.grid = self.generate_grid(
+                            self.grid_width,
+                            self.grid_height,
+                            self.blocker_prob,
+                            self.desired_walkability,
+                        )
+
+                # If the user closes the window, stop the loop.
                 if event.type == pygame.QUIT:
                     running = False
 
@@ -212,49 +226,60 @@ class ShortcutGenerator:
         random.seed(seed)
         np.random.seed(seed)
 
-    def _remove_n_nodes_preserving_connectivity(self, graph: nx.Graph, n: int) -> Tuple[nx.Graph, int]:
-        # Ensure the graph has at least two nodes.
-        if graph.order() < 2:
-            raise ValueError("Cannot remove nodes from graph with fewer than two nodes.")
+    def _dilate_grid(self, grid, num_iterations=20):
+        for _ in range(20):
+            for y in range(1, self.grid_height - 1):
+                for x in range(1, self.grid_width - 1):
+                    if np.sum(grid[y - 1 : y + 2, x - 1 : x + 2]) >= 5:
+                        grid[y, x] = True
+        return grid
 
-        # Ensure the number of nodes to remove is valid.
-        if n < 1:
-            raise ValueError("Number of nodes to remove must be at least one.")
+    def _isolate_largest_component(self, grid):
+        # Use flood fill to find all passable regions of the grid.
+        regions = []
+        visited = np.zeros_like(grid, dtype=bool)
+        for y in range(self.grid_height):
+            for x in range(self.grid_width):
+                if grid[y, x] and not visited[y, x]:
+                    region = self._flood_fill(grid, visited, x, y)
+                    regions.append(region)
 
-        # Ensure the number of nodes to remove is not greater than the number of nodes in the graph.
-        if n >= graph.order():
-            raise ValueError("Number of nodes to remove must be less than the number of nodes in the graph.")
+        # Find the largest region.
+        largest_region = max(regions, key=len)
 
-        # Ensure that the graph is connected to begin with.
-        if not nx.is_connected(graph):
-            raise ValueError("Input graph must be connected.")
+        # Fill in all other regions.
+        for region in regions:
+            if region is not largest_region:
+                for y, x in region:
+                    grid[y, x] = False
 
-        # Pre-compute the initial set of articulation points.
-        articulation_points = set(nx.articulation_points(graph))
-        removed_nodes_count = 0
+        return grid, len(largest_region)
 
-        for _ in range(n):
-            removable_nodes = [node for node in graph.nodes() if node not in articulation_points]
+    def _flood_fill(self, grid, visited, x, y):
+        region = []
+        stack = [(x, y)]
+        while stack:
+            x, y = stack.pop()
+            if visited[y, x]:
+                continue
+            visited[y, x] = True
+            region.append((y, x))
+            for dy, dx in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                new_x, new_y = x + dx, y + dy
+                if 0 <= new_x < self.grid_width and 0 <= new_y < self.grid_height and grid[new_y, new_x]:
+                    stack.append((new_x, new_y))
 
-            # If no removable nodes are left, terminate early.
-            if len(removable_nodes) == 0:
-                break
-
-            # Remove a random removable node.
-            node_to_remove = random.choice(removable_nodes)
-            graph.remove_node(node_to_remove)
-            removed_nodes_count += 1
-
-            # Update the set of articulation points.
-            if graph.order() > 1:
-                articulation_points = set(nx.articulation_points(graph))
-            else:
-                articulation_points = set()
-
-        return graph, removed_nodes_count
+        return region
 
 
 if __name__ == "__main__":
-    generator = ShortcutGenerator(3, [(50, 50), (20, 20), (3, 3)], [-1, -3, -5], 0.01, [8, 4], [0.5, 0.3, 0.0])
-    generator.generate_grids()
+    generator = ShortcutGenerator(
+        grid_height=100,
+        grid_width=100,
+        blocker_prob=0.65,
+        desired_walkability=0.6,
+        num_shortcut_hubs=3,
+        shortcut_hub_radii=[2, 4, 6],
+        shortcut_hub_costs=[-1.0, -5.0, -10.0],
+    )
     generator.render()
