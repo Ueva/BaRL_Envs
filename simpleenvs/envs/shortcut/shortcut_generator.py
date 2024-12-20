@@ -5,8 +5,10 @@ import distinctipy
 
 import numpy as np
 import numpy.typing as npt
+import networkx as nx
 
 from typing import List, Tuple
+
 
 import scipy.spatial
 
@@ -97,7 +99,7 @@ class ShortcutGenerator:
         self.grid_height = grid.shape[0]
         self.grid_width = grid.shape[1]
 
-    def generate_shortcut_hubs(self, num_shortcut_hubs, num_iterations=20, dist_mode="cityblock"):
+    def generate_shortcut_hubs(self, num_shortcut_hubs, num_iterations=5):
         # Store the number of shortcut hubs for later use.
         self.num_shortcut_hubs = num_shortcut_hubs
 
@@ -107,14 +109,26 @@ class ShortcutGenerator:
         )
         num_cells = len(walkable_cells)
 
+        # Build the graph of walkable cells.
+        G = nx.Graph()
+        for y, x in walkable_cells:
+            G.add_node((y, x))
+            for dy, dx in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                n_y, n_x = y + dy, x + dx
+                if 0 <= n_y < self.grid_height and 0 <= n_x < self.grid_width and self.grid[n_y, n_x]:
+                    G.add_edge((y, x), (n_y, n_x))
+
         # Randomly initialise N shortcut hubs.
-        rand_incides = np.random.choice(num_cells, size=num_shortcut_hubs, replace=False)
-        hubs = walkable_cells[rand_incides]
+        rand_indices = np.random.choice(num_cells, size=num_shortcut_hubs, replace=False)
+        hubs = walkable_cells[rand_indices]
 
         for _ in range(num_iterations):
-            # Assign each cell to the nearest hub.
-            # TODO: We use the Manhattan or Euclidean distance here for now, but really we should use the shortest path distance.
-            distances = scipy.spatial.distance.cdist(walkable_cells, hubs, metric=dist_mode)
+            # Assign each cell to the nearest hub using shortest path distance.
+            distances = np.zeros((num_cells, num_shortcut_hubs))
+            for i, hub in enumerate(hubs):
+                lengths = nx.single_source_shortest_path_length(G, tuple(hub))
+                for j, cell in enumerate(walkable_cells):
+                    distances[j, i] = lengths.get(tuple(cell), np.inf)
             assignments = np.argmin(distances, axis=1)
 
             # Update the hubs to be the centroids of the cells assigned to them.
@@ -146,7 +160,11 @@ class ShortcutGenerator:
         }
 
         # Create a dictionary mapping each walkable cell to the closest hub.
-        distances = scipy.spatial.distance.cdist(walkable_cells, hubs, metric=dist_mode)
+        distances = np.zeros((num_cells, num_shortcut_hubs))
+        for i, hub in enumerate(hubs):
+            lengths = nx.single_source_shortest_path_length(G, tuple(hub))
+            for j, cell in enumerate(walkable_cells):
+                distances[j, i] = lengths.get(tuple(cell), np.inf)
         assignments = np.argmin(distances, axis=1)
         self.cell_to_hub = {
             tuple(cell): self.shortcut_hubs[hub_idx] for cell, hub_idx in zip(walkable_cells, assignments)
