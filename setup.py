@@ -48,6 +48,7 @@ setuptools.setup(
         "importlib_resources",
         "importlib_metadata",
         "numpy",
+        "scipy",
         "networkx",
         "pygame",
         "gymnasium",
