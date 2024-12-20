@@ -1,11 +1,14 @@
 import random
 import pygame
+import scipy
 
 import numpy as np
 import numpy.typing as npt
 import networkx as nx
 
 from typing import List, Tuple
+
+import scipy.spatial
 
 # This class generates a "shortcut" world.
 # The world consists of a single grid. Each grid cell is connected to its four neighbours (up, down, left, right), unless it is blocked.
@@ -31,7 +34,7 @@ class ShortcutGenerator:
         self.blocker_prob: float = None
         self.desired_walkability: float = None
         self.num_shortcut_hubs: int = None
-        self.shortcut_hubs: List[Tuple[Tuple[int, int], List[int]]] = None
+        self.shortcut_hubs: List[Tuple[Tuple[int, int]]] = None
         self.shortcut_connections: List[Tuple[int, Tuple[int, int], Tuple[int, int]]] = None
         self.shortcut_hub_radii: List[int] = None
         self.shortcut_hub_costs: List[float] = None
@@ -84,6 +87,9 @@ class ShortcutGenerator:
         # Regenerate the grid using the currently_stored parameters.
         self.grid = self.generate_grid(self.grid_width, self.grid_height, self.blocker_prob, self.desired_walkability)
 
+        if self.shortcut_hubs is not None:
+            self.regenerate_shortcut_hubs()
+
         return self.grid
 
     def set_grid(self, grid):
@@ -91,8 +97,60 @@ class ShortcutGenerator:
         self.grid_height = grid.shape[0]
         self.grid_width = grid.shape[1]
 
-    def generate_shortcut_hubs(self, num_shortcut_hubs):
-        pass  # TODO: Implement this function.
+    def generate_shortcut_hubs(self, num_shortcut_hubs, num_iterations=10):
+        # Store the number of shortcut hubs for later use.
+        self.num_shortcut_hubs = num_shortcut_hubs
+
+        # Create an array of walkable cells.
+        walkable_cells = np.array(
+            [(y, x) for y in range(self.grid_height) for x in range(self.grid_width) if self.grid[y, x]]
+        )
+        num_cells = len(walkable_cells)
+
+        # Randomly initialise N shortcut hubs.
+        rand_incides = np.random.choice(num_cells, size=num_shortcut_hubs, replace=False)
+        hubs = walkable_cells[rand_incides]
+
+        for _ in range(num_iterations):
+            # Assign each cell to the nearest hub.
+            distances = scipy.spatial.distance.cdist(walkable_cells, hubs, metric="euclidean")
+            assignments = np.argmin(distances, axis=1)
+
+            # Update the hubs to be the centroids of the cells assigned to them.
+            new_hubs = []
+            for i in range(num_shortcut_hubs):
+                assigned_cells = walkable_cells[assignments == i]
+                if len(assigned_cells) > 0:
+                    centroid = np.mean(assigned_cells, axis=0)
+                    closest_idx = np.argmin(np.linalg.norm(assigned_cells - centroid, axis=1))
+                    new_hubs.append(assigned_cells[closest_idx])
+                else:
+                    new_hubs.append(walkable_cells[np.random.choice(num_cells)])
+
+            hubs = np.array(new_hubs)
+
+        self.shortcut_hubs = [tuple(hub) for hub in hubs]
+
+        return self.shortcut_hubs
+
+    def regenerate_shortcut_hubs(self):
+        """
+        Convenience method to regenerate the shortcut hubs using the currently stored parameters.
+
+        Raises:
+            ValueError: Raised if `.generate_shortcut_hubs()` has not been called yet (i.e., there are no stored parameters to re-generate the shortcut hubs from).
+
+        See also:
+            `.generate_shortcut_hubs()`
+        """
+        # Can only be called after a .generate_shortcut_hubs() has already been called.
+        if self.num_shortcut_hubs is None:
+            raise ValueError("Please call .generate_shortcut_hubs() before calling .regenerate_shortcut_hubs().")
+
+        # Regenerate the shortcut hubs using the currently stored parameters.
+        self.shortcut_hubs = self.generate_shortcut_hubs(self.num_shortcut_hubs)
+
+        return self.shortcut_hubs
 
     def set_shortcut_hubs(self, shortcut_hubs):
         self.shortcut_hubs = shortcut_hubs
@@ -159,6 +217,19 @@ class ShortcutGenerator:
                             ),
                         )
 
+            # Highlight shortcut hubs in red.
+            for hub in self.shortcut_hubs:
+                pygame.draw.rect(
+                    screen,
+                    RED,
+                    pygame.Rect(
+                        grid_offset + hub[1] * cell_size,
+                        grid_offset + hub[0] * cell_size,
+                        cell_size,
+                        cell_size,
+                    ),
+                )
+
             # Update the display.
             pygame.display.update()
 
@@ -171,6 +242,9 @@ class ShortcutGenerator:
                     # If the user presses the R key, regenerate the grid.
                     elif event.key == pygame.K_r:
                         self.grid = self.regenerate_grid()
+                    # If the user preses the H key, regenerate the shortcut hubs.
+                    elif event.key == pygame.K_h:
+                        self.shortcut_hubs = self.generate_shortcut_hubs(self.num_shortcut_hubs)
 
                 # If the user closes the window, stop the loop.
                 if event.type == pygame.QUIT:
@@ -251,7 +325,7 @@ if __name__ == "__main__":
     generator.seed(0)
 
     generator.generate_grid(grid_height=100, grid_width=150, blocker_prob=0.475, desired_walkability=0.6)
-    generator.generate_shortcut_hubs(num_shortcut_hubs=8)
+    generator.generate_shortcut_hubs(num_shortcut_hubs=12)
     generator.generate_shortcuts(shortcut_hub_radii=[2, 4, 6])
 
     generator.render()
