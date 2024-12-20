@@ -113,3 +113,4 @@ venv.bak/
 test.py
 *.profile
 *.gexf
+*.prof
