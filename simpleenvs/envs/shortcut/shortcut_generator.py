@@ -215,7 +215,7 @@ class ShortcutGenerator:
         for y in range(self.grid_height):
             for x in range(self.grid_width):
                 if grid[y, x] and not visited[y, x]:
-                    region = self._flood_fill(grid, visited, x, y)
+                    region = self._flood_fill(grid, visited, y, x)
                     regions.append(region)
 
         # Find the largest region.
@@ -229,19 +229,19 @@ class ShortcutGenerator:
 
         return grid, len(largest_region)
 
-    def _flood_fill(self, grid, visited, x, y):
+    def _flood_fill(self, grid, visited, y, x):
         region = []
-        stack = [(x, y)]
+        stack = [(y, x)]
         while stack:
-            x, y = stack.pop()
+            y, x = stack.pop()
             if visited[y, x]:
                 continue
             visited[y, x] = True
             region.append((y, x))
             for dy, dx in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
-                new_x, new_y = x + dx, y + dy
-                if 0 <= new_x < self.grid_width and 0 <= new_y < self.grid_height and grid[new_y, new_x]:
-                    stack.append((new_x, new_y))
+                new_y, new_x = y + dy, x + dx
+                if 0 <= new_y < self.grid_height and 0 <= new_x < self.grid_width and grid[new_y, new_x]:
+                    stack.append((new_y, new_x))
 
         return region
 
@@ -250,7 +250,7 @@ if __name__ == "__main__":
     generator = ShortcutGenerator()
     generator.seed(0)
 
-    generator.generate_grid(grid_height=100, grid_width=100, blocker_prob=0.475, desired_walkability=0.6)
+    generator.generate_grid(grid_height=100, grid_width=150, blocker_prob=0.475, desired_walkability=0.6)
     generator.generate_shortcut_hubs(num_shortcut_hubs=8)
     generator.generate_shortcuts(shortcut_hub_radii=[2, 4, 6])
 
