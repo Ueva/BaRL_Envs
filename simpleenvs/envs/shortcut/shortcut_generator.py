@@ -125,7 +125,7 @@ class ShortcutGenerator:
             grid = np.random.rand(self.grid_height, self.grid_width) > self.blocker_prob
 
             # Dilate the cells to form larger, smoother connected regions.
-            grid = self._dilate_grid(grid, num_iterations=20)
+            grid = self._ca_grid(grid)
 
             # Isolate the largest connected region.
             grid, largest_region_size = self._isolate_largest_component(grid)
@@ -226,15 +226,35 @@ class ShortcutGenerator:
         random.seed(seed)
         np.random.seed(seed)
 
-    def _dilate_grid(self, grid, num_iterations=20):
-        for _ in range(20):
-            for y in range(1, self.grid_height - 1):
-                for x in range(1, self.grid_width - 1):
-                    if np.sum(grid[y - 1 : y + 2, x - 1 : x + 2]) >= 5:
-                        grid[y, x] = True
+        # def _process_grid(self, grid, num_iterations=5):
+
+    def _ca_grid(self, grid, num_iterations=20):
+        # This function implements a cellular automaton to dilate the cells of the grid.
+        # We use the following rules:
+        # - a tile becomes a wall if it was a wall and 4 or more of its eight neighbors were walls,
+        # - or if it was not a wall and 5 or more neighbors were.
+        # Put more succinctly, a tile is a wall if the 3x3 region centered on it contained at least 5 walls.
+        # Walls are False (0) and open tiles are True (1). You need to take this into account in calculating the number of walls.
+        # We implement this in as efficient a way as possible, making use of vectorisation where we can.
+
+        for _ in range(num_iterations):
+            # Count the number of walls in the 3x3 region around each cell.
+            num_walls = np.zeros_like(grid, dtype=int)
+            for dy in range(-1, 2):
+                for dx in range(-1, 2):
+                    if dy == 0 and dx == 0:
+                        continue
+                    num_walls += np.roll(grid, (dy, dx), axis=(0, 1))
+
+            # Update the grid according to the rules.
+            grid = np.logical_or(
+                np.logical_and(grid, num_walls >= 4), np.logical_and(np.logical_not(grid), num_walls >= 5)
+            )
+
         return grid
 
     def _isolate_largest_component(self, grid):
+        # return grid, self.grid_width * self.grid_height
         # Use flood fill to find all passable regions of the grid.
         regions = []
         visited = np.zeros_like(grid, dtype=bool)
@@ -276,8 +296,8 @@ if __name__ == "__main__":
     generator = ShortcutGenerator(
         grid_height=100,
         grid_width=100,
-        blocker_prob=0.65,
-        desired_walkability=0.6,
+        blocker_prob=0.475,
+        desired_walkability=0.475,
         num_shortcut_hubs=3,
         shortcut_hub_radii=[2, 4, 6],
         shortcut_hub_costs=[-1.0, -5.0, -10.0],
