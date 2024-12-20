@@ -1,10 +1,10 @@
+import scipy
 import random
 import pygame
-import scipy
+import distinctipy
 
 import numpy as np
 import numpy.typing as npt
-import networkx as nx
 
 from typing import List, Tuple
 
@@ -97,7 +97,7 @@ class ShortcutGenerator:
         self.grid_height = grid.shape[0]
         self.grid_width = grid.shape[1]
 
-    def generate_shortcut_hubs(self, num_shortcut_hubs, num_iterations=10):
+    def generate_shortcut_hubs(self, num_shortcut_hubs, num_iterations=20, dist_mode="cityblock"):
         # Store the number of shortcut hubs for later use.
         self.num_shortcut_hubs = num_shortcut_hubs
 
@@ -113,7 +113,8 @@ class ShortcutGenerator:
 
         for _ in range(num_iterations):
             # Assign each cell to the nearest hub.
-            distances = scipy.spatial.distance.cdist(walkable_cells, hubs, metric="euclidean")
+            # TODO: We use the Manhattan or Euclidean distance here for now, but really we should use the shortest path distance.
+            distances = scipy.spatial.distance.cdist(walkable_cells, hubs, metric=dist_mode)
             assignments = np.argmin(distances, axis=1)
 
             # Update the hubs to be the centroids of the cells assigned to them.
@@ -130,6 +131,26 @@ class ShortcutGenerator:
             hubs = np.array(new_hubs)
 
         self.shortcut_hubs = [tuple(hub) for hub in hubs]
+
+        ### Store a few bits of information for rendering. ###
+        # Create a dictionary mapping each hub to a colour.
+        self.hub_colours = {
+            hub: colour
+            for hub, colour in zip(
+                self.shortcut_hubs,
+                distinctipy.get_colors(
+                    num_shortcut_hubs,
+                    exclude_colors=[(0, 0, 0), (1, 1, 1), (0.5, 0.5, 0.5), (1, 0, 0), (0, 1, 0), (0, 0, 1)],
+                ),
+            )
+        }
+
+        # Create a dictionary mapping each walkable cell to the closest hub.
+        distances = scipy.spatial.distance.cdist(walkable_cells, hubs, metric=dist_mode)
+        assignments = np.argmin(distances, axis=1)
+        self.cell_to_hub = {
+            tuple(cell): self.shortcut_hubs[hub_idx] for cell, hub_idx in zip(walkable_cells, assignments)
+        }
 
         return self.shortcut_hubs
 
@@ -191,20 +212,35 @@ class ShortcutGenerator:
             # The background should be grey.
             screen.fill(GREY)
 
+            draw_hub_regions = pygame.key.get_pressed()[pygame.K_LSHIFT]
+
             # Draw the grid cells, centred on the screen.
             for y in range(self.grid_height):
                 for x in range(self.grid_width):
                     if self.grid[y, x]:
-                        pygame.draw.rect(
-                            screen,
-                            WHITE,
-                            pygame.Rect(
-                                grid_offset + x * cell_size,
-                                grid_offset + y * cell_size,
-                                cell_size,
-                                cell_size,
-                            ),
-                        )
+                        if not draw_hub_regions:
+                            pygame.draw.rect(
+                                screen,
+                                WHITE,
+                                pygame.Rect(
+                                    grid_offset + x * cell_size,
+                                    grid_offset + y * cell_size,
+                                    cell_size,
+                                    cell_size,
+                                ),
+                            )
+                        else:
+                            hub_colour = self.hub_colours[self.cell_to_hub[(y, x)]]
+                            pygame.draw.rect(
+                                screen,
+                                self._colour_float_to_int(hub_colour),
+                                pygame.Rect(
+                                    grid_offset + x * cell_size,
+                                    grid_offset + y * cell_size,
+                                    cell_size,
+                                    cell_size,
+                                ),
+                            )
                     else:
                         pygame.draw.rect(
                             screen,
@@ -230,9 +266,6 @@ class ShortcutGenerator:
                     ),
                 )
 
-            # Update the display.
-            pygame.display.update()
-
             # Process events.
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
@@ -250,11 +283,12 @@ class ShortcutGenerator:
                 if event.type == pygame.QUIT:
                     running = False
 
+            # Update the display.
+            pygame.display.update()
+
     def seed(self, seed):
         random.seed(seed)
         np.random.seed(seed)
-
-        # def _process_grid(self, grid, num_iterations=5):
 
     def _ca_grid(self, grid, num_iterations=20):
         # This function implements a cellular automaton to dilate the cells of the grid.
@@ -319,13 +353,19 @@ class ShortcutGenerator:
 
         return region
 
+    def _colour_float_to_int(self, colour):
+        return tuple(int(255 * c) for c in colour)
+
+    def _colour_int_to_float(self, colour):
+        return tuple(c / 255 for c in colour)
+
 
 if __name__ == "__main__":
     generator = ShortcutGenerator()
     generator.seed(0)
 
     generator.generate_grid(grid_height=100, grid_width=150, blocker_prob=0.475, desired_walkability=0.6)
-    generator.generate_shortcut_hubs(num_shortcut_hubs=12)
+    generator.generate_shortcut_hubs(num_shortcut_hubs=11)
     generator.generate_shortcuts(shortcut_hub_radii=[2, 4, 6])
 
     generator.render()
