@@ -50,6 +50,7 @@ setuptools.setup(
         "numpy",
         "scipy",
         "networkx",
+        "igraph",
         "pygame",
         "gymnasium",
         "distinctipy",
