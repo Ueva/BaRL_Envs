@@ -22,104 +22,29 @@ from typing import List, Tuple
 
 
 class ShortcutGenerator:
-    def __init__(
-        self,
-        grid_height: int = None,
-        grid_width: int = None,
-        blocker_prob: float = 0.0,
-        desired_walkability: float = 0.5,
-        grid: npt.NDArray[np.bool_] = None,
-        num_shortcut_hubs: int = None,
-        shortcut_hubs: List[Tuple[int, int]] = None,
-        shortcut_connections: List[Tuple[int, Tuple[int, int], Tuple[int, int]]] = None,
-        shortcut_hub_radii: List[int] = None,
-        shortcut_hub_costs: List[float] = None,
-    ):
+    def __init__(self):
         """
-        Initializes the SingleLevelShortcutGenerator with the given parameters.
-
-        Args:
-            grid (npt.NDArray[np.bool_], optional): A predefined grid to use. Defaults to None.
-            grid_height (int, optional): The height of the grid. Defaults to None.
-            grid_width (int, optional): The width of the grid. Defaults to None.
-            blocker_prob (float, optional): The probability of a cell being blocked. Defaults to 0.0.
-            desired_walkability (float, optional): The minimum proportion of cells that should be walkable. Defaults to 0.5.
-            shortcut_hubs (List[Tuple[int, int]], optional): A list of predefined shortcut hubs. Defaults to None.
-            num_shortcut_hubs (int, optional): The number of shortcut hubs to generate. Defaults to None.
-            shortcut_connections (List[Tuple[int, Tuple[int, int], Tuple[int, int]]], optional): A list of predefined shortcut connections of the form (level, (source coord), (target coord)). Defaults to None.
-            shortcut_hub_radii (List[int], optional): A list of radii for each shortcut hub. Defaults to None.
-            shortcut_hub_costs (List[float], optional): A list of costs for using each shortcut hub. Defaults to None.
-
-        Raises:
-            ValueError: If both a grid and grid dimensions are provided.
-            ValueError: If neither a grid nor grid dimensions are provided.
-            ValueError: If both shortcut hubs and the number of shortcut hubs are provided.
-            ValueError: If neither shortcut hubs nor the number of shortcut hubs are provided.
-            ValueError: If both shortcut connections and shortcut hub radii are provided.
-            ValueError: If neither shortcut connections nor shortcut hub radii are provided.
-            ValueError: If shortcut hub costs are not provided.
-
+        Initializes the SingleLevelShortcutGenerator.
         """
-
-        # If a grid has been provided, use it.
-        if grid is not None:
-            if grid_height is not None or grid_width is not None:
-                raise ValueError("Please specify either a grid to use, or parameters to generate a grid.")
-
-            self.grid_height = grid.shape[0]
-            self.grid_width = grid.shape[1]
-            self.grid = grid
-        # Otherwise, generate a grid.
-        else:
-            if grid_height is None or grid_width is None:
-                raise ValueError("Please specify either a grid to use, or parameters to generate a grid.")
-
-            self.grid_height = grid_height
-            self.grid_width = grid_width
-            self.blocker_prob = blocker_prob
-            self.desired_walkability = desired_walkability
-            self.grid = self.generate_grid(grid_width, grid_height, blocker_prob, desired_walkability)
-
-        # If shortcut hubs have been specified, use them.
-        if shortcut_hubs is not None:
-            if num_shortcut_hubs is not None:
-                raise ValueError(
-                    "Please specify either a list of shortcut hubs to use, or parameters to generate shortcut hubs."
-                )
-            self.shortcut_hubs = shortcut_hubs
-            self.num_shortcut_hubs = len(shortcut_hubs)
-        # Otherwise, generate shortcut hubs.
-        else:
-            if num_shortcut_hubs is None:
-                raise ValueError(
-                    "Please specify either a list of shortcut hubs to use, or specify how many to generate."
-                )
-            self.num_shortcut_hubs = num_shortcut_hubs
-            self.shortcut_hubs = self.generate_shortcut_hubs(num_shortcut_hubs)
-
-        # If shortcut connections have been specified, use them.
-        if shortcut_connections is not None:
-            if shortcut_hub_radii is not None:
-                raise ValueError(
-                    "Please specify either a list of shortcut connections to use, or parameters to generate shortcut connections."
-                )
-            self.shortcut_connections = shortcut_connections
-        # Otherwise, generate shortcut connections.
-        else:
-            if shortcut_hub_radii is None:
-                raise ValueError(
-                    "Please specify either a list of shortcut connections to use, or parameters to generate shortcut connections."
-                )
-            self.shortcut_hub_radii = shortcut_hub_radii
-            self.shortcuts = self.generate_shortcuts(shortcut_hub_radii)
-
-        if shortcut_hub_costs is None:
-            ValueError("Please specify the costs of using each level of shortcut actions.")
-            self.shortcut_hub_costs = shortcut_hub_costs
+        self.grid_height: int = None
+        self.grid_width: int = None
+        self.blocker_prob: float = None
+        self.desired_walkability: float = None
+        self.num_shortcut_hubs: int = None
+        self.shortcut_hubs: List[Tuple[Tuple[int, int], List[int]]] = None
+        self.shortcut_connections: List[Tuple[int, Tuple[int, int], Tuple[int, int]]] = None
+        self.shortcut_hub_radii: List[int] = None
+        self.shortcut_hub_costs: List[float] = None
 
     def generate_grid(
         self, grid_width: int, grid_height: int, blocker_prob: float, desired_walkability: float
     ) -> npt.NDArray[np.bool_]:
+        # Store the parameters for later use.
+        self.grid_height = grid_height
+        self.grid_width = grid_width
+        self.blocker_prob = blocker_prob
+        self.desired_walkability = desired_walkability
+
         found_valid_grid = False
         while not found_valid_grid:
             grid = np.random.rand(self.grid_height, self.grid_width) > self.blocker_prob
@@ -133,10 +58,44 @@ class ShortcutGenerator:
             if largest_region_size / (self.grid_height * self.grid_width) >= desired_walkability:
                 found_valid_grid = True
 
+        self.grid = grid
+
         return grid
+
+    def regenerate_grid(self):
+        """
+        Convenience method to regenerate the grid using the currently stored parameters.
+
+        Raises:
+            ValueError: Raised if `.generate_grid()` has not been called yet (i.e., there are no stored parameters to re-generate the grid from).
+
+        See also:
+            `.generate_grid()`
+        """
+        # Can only be called after a .generate_grid() has already been called.
+        if (
+            self.grid_height is None
+            or self.grid_width is None
+            or self.blocker_prob is None
+            or self.desired_walkability is None
+        ):
+            raise ValueError("Please call .generate_grid() before calling .regenerate_grid().")
+
+        # Regenerate the grid using the currently_stored parameters.
+        self.grid = self.generate_grid(self.grid_width, self.grid_height, self.blocker_prob, self.desired_walkability)
+
+        return self.grid
+
+    def set_grid(self, grid):
+        self.grid = grid
+        self.grid_height = grid.shape[0]
+        self.grid_width = grid.shape[1]
 
     def generate_shortcut_hubs(self, num_shortcut_hubs):
         pass  # TODO: Implement this function.
+
+    def set_shortcut_hubs(self, shortcut_hubs):
+        self.shortcut_hubs = shortcut_hubs
 
     def generate_shortcuts(self, shortcut_hub_radii):
         pass  # TODO: Implement this function.
@@ -211,12 +170,7 @@ class ShortcutGenerator:
                         running = False
                     # If the user presses the R key, regenerate the grid.
                     elif event.key == pygame.K_r:
-                        self.grid = self.generate_grid(
-                            self.grid_width,
-                            self.grid_height,
-                            self.blocker_prob,
-                            self.desired_walkability,
-                        )
+                        self.grid = self.regenerate_grid()
 
                 # If the user closes the window, stop the loop.
                 if event.type == pygame.QUIT:
@@ -293,13 +247,11 @@ class ShortcutGenerator:
 
 
 if __name__ == "__main__":
-    generator = ShortcutGenerator(
-        grid_height=100,
-        grid_width=100,
-        blocker_prob=0.475,
-        desired_walkability=0.475,
-        num_shortcut_hubs=3,
-        shortcut_hub_radii=[2, 4, 6],
-        shortcut_hub_costs=[-1.0, -5.0, -10.0],
-    )
+    generator = ShortcutGenerator()
+    generator.seed(0)
+
+    generator.generate_grid(grid_height=100, grid_width=100, blocker_prob=0.475, desired_walkability=0.6)
+    generator.generate_shortcut_hubs(num_shortcut_hubs=8)
+    generator.generate_shortcuts(shortcut_hub_radii=[2, 4, 6])
+
     generator.render()
