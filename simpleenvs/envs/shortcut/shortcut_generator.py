@@ -127,9 +127,8 @@ class ShortcutGenerator:
             # Assign each cell to the nearest hub using shortest path distance.
             distances = np.zeros((num_cells, num_shortcut_hubs))
             for i, hub in enumerate(hubs):
-                lengths = G.distances(source=hub[0] * self.grid_width + hub[1])[0]
-                for j, cell in enumerate(walkable_cells):
-                    distances[j, i] = lengths[cell[0] * self.grid_width + cell[1]]
+                lengths = np.array(G.distances(source=hub[0] * self.grid_width + hub[1])[0]).flatten()
+                distances[:, i] = lengths[walkable_cells[:, 0] * self.grid_width + walkable_cells[:, 1]]
             assignments = np.argmin(distances, axis=1)
 
             # Update the hubs to be the centroids of the cells assigned to them.
@@ -163,9 +162,8 @@ class ShortcutGenerator:
         # Create a dictionary mapping each walkable cell to the closest hub.
         distances = np.zeros((num_cells, num_shortcut_hubs))
         for i, hub in enumerate(hubs):
-            lengths = G.distances(source=hub[0] * self.grid_width + hub[1])[0]
-            for j, cell in enumerate(walkable_cells):
-                distances[j, i] = lengths[cell[0] * self.grid_width + cell[1]]
+            lengths = np.array(G.distances(source=hub[0] * self.grid_width + hub[1])[0]).flatten()
+            distances[:, i] = lengths[walkable_cells[:, 0] * self.grid_width + walkable_cells[:, 1]]
         assignments = np.argmin(distances, axis=1)
         self.cell_to_hub = {
             tuple(cell): self.shortcut_hubs[hub_idx] for cell, hub_idx in zip(walkable_cells, assignments)
