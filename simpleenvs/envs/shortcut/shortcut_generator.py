@@ -1,4 +1,3 @@
-import scipy
 import random
 import pygame
 import distinctipy
@@ -9,16 +8,13 @@ import igraph as ig
 
 from typing import List, Tuple
 
-
-import scipy.spatial
-
 # This class generates a "shortcut" world.
 # The world consists of a single grid. Each grid cell is connected to its four neighbours (up, down, left, right), unless it is blocked.
 # The agent must navigate from some start cell to some target cell on the grid.
 # Some positions on the grid are designated as "shortcuts". Each shortcut is connected to other shortcuts on the grid, allowing for immediate (but
 # more costly) movement between them. There can be multiple levels of shortcut actions, with each level allowing movement between more distant shortcuts
 # than the last (but costing more to use).
-# Moving aroudn the grid using shortcuts can be thought of as moving around a city using different modes of transport:
+# Moving around the grid using shortcuts can be thought of as moving around a city using different modes of transport:
 #    - Moving around the grid using primitive actions can be thought of as walking,
 #    - moving around the grid using the level shortcut actions can be thought of as taking the bus, and
 #    - moving around the grid using the second level shortcut actions can be thought of as taking a plane.
@@ -36,14 +32,25 @@ class ShortcutGenerator:
         self.blocker_prob: float = None
         self.desired_walkability: float = None
         self.num_shortcut_hubs: int = None
-        self.shortcut_hubs: List[Tuple[Tuple[int, int]]] = None
+        self.shortcut_hubs: List[Tuple[int, int]] = None
         self.shortcut_connections: List[Tuple[int, Tuple[int, int], Tuple[int, int]]] = None
         self.shortcut_hub_radii: List[int] = None
-        self.shortcut_hub_costs: List[float] = None
 
     def generate_grid(
-        self, grid_width: int, grid_height: int, blocker_prob: float, desired_walkability: float
+        self, grid_height: int, grid_width: int, blocker_prob: float, desired_walkability: float
     ) -> npt.NDArray[np.bool_]:
+        """
+        Generates a grid of a specific height and width.
+
+        Args:
+            grid_height (int): _description_
+            grid_width (int): The width of the grid.
+            blocker_prob (float): _description_
+            desired_walkability (float): _description_
+
+        Returns:
+            npt.NDArray[np.bool_]: _description_
+        """
         # Store the parameters for later use.
         self.grid_height = grid_height
         self.grid_width = grid_width
@@ -67,9 +74,12 @@ class ShortcutGenerator:
 
         return grid
 
-    def regenerate_grid(self):
+    def regenerate_grid(self) -> npt.NDArray[np.bool_]:
         """
         Convenience method to regenerate the grid using the currently stored parameters.
+
+        Returns:
+            npt.NDArray[np.bool_]: The new grid.
 
         Raises:
             ValueError: Raised if `.generate_grid()` has not been called yet (i.e., there are no stored parameters to re-generate the grid from).
@@ -87,19 +97,35 @@ class ShortcutGenerator:
             raise ValueError("Please call .generate_grid() before calling .regenerate_grid().")
 
         # Regenerate the grid using the currently_stored parameters.
-        self.grid = self.generate_grid(self.grid_width, self.grid_height, self.blocker_prob, self.desired_walkability)
+        self.grid = self.generate_grid(self.grid_height, self.grid_width, self.blocker_prob, self.desired_walkability)
 
         if self.shortcut_hubs is not None:
             self.regenerate_shortcut_hubs()
 
         return self.grid
 
-    def set_grid(self, grid):
+    def set_grid(self, grid: npt.NDArray[np.bool_]):
+        """
+        Stores a pre-defined grid for use in the generator.
+
+        Args:
+            grid (npt.NDArray[np.bool_]): The grid to store.
+        """
         self.grid = grid
         self.grid_height = grid.shape[0]
         self.grid_width = grid.shape[1]
 
-    def generate_shortcut_hubs(self, num_shortcut_hubs, num_iterations=5):
+    def generate_shortcut_hubs(self, num_shortcut_hubs: int, num_iterations: int = 10) -> List[Tuple[int, int]]:
+        """
+        Generates a set of shortcut hubs on the grid.
+
+        Args:
+            num_shortcut_hubs (int): The number of shortcut hubs to generate.
+            num_iterations (int, optional): The number of iterations to use in the k-means algorithm. Defaults to 10.
+
+        Returns:
+            List[Tuple[int, int]]: The list of cells selected as shortcut hubs.
+        """
         # Store the number of shortcut hubs for later use.
         self.num_shortcut_hubs = num_shortcut_hubs
 
@@ -171,9 +197,12 @@ class ShortcutGenerator:
 
         return self.shortcut_hubs
 
-    def regenerate_shortcut_hubs(self):
+    def regenerate_shortcut_hubs(self) -> List[Tuple[int, int]]:
         """
         Convenience method to regenerate the shortcut hubs using the currently stored parameters.
+
+        Returns:
+            List[Tuple[int, int]]: The new shortcut hubs.
 
         Raises:
             ValueError: Raised if `.generate_shortcut_hubs()` has not been called yet (i.e., there are no stored parameters to re-generate the shortcut hubs from).
@@ -190,11 +219,38 @@ class ShortcutGenerator:
 
         return self.shortcut_hubs
 
-    def set_shortcut_hubs(self, shortcut_hubs):
+    def set_shortcut_hubs(self, shortcut_hubs: List[Tuple[int, int]]):
+        """
+        Set a specific list of cells (y, x) to be used as shortcut hubs.
+
+        Args:
+            shortcut_hubs (List[Tuple[int, int]]): The list of cells to use as shortcut hubs.
+        """
         self.shortcut_hubs = shortcut_hubs
 
-    def generate_shortcuts(self, shortcut_hub_radii):
+    def generate_shortcut_connections(self, shortcut_hub_radii):
         pass  # TODO: Implement this function.
+
+    def regenerate_shortcut_connections(self):
+        pass
+
+    def set_shortcut_connections(self, shortcut_connections: List[Tuple[int, Tuple[int, int], Tuple[int, int]]]):
+        """
+        Set a specific list of connections between shortcut hubs.
+
+        Args:
+            shortcut_connections (List[Tuple[int, Tuple[int, int], Tuple[int, int]]]): The list of connections to create between shortcut hubs.
+        """
+        self.shortcut_connections = shortcut_connections
+
+    def set_shortcut_costs(self, shortcut_costs: List[float]):
+        """
+        Set the costs of using the different levels of shortcuts.
+
+        Args:
+            shortcut_costs (List[float]): The cost of using each level of shortcut.
+        """
+        self.shortcut_costs = shortcut_costs
 
     def render(self):
         # Set up the pygame window.
@@ -381,8 +437,9 @@ if __name__ == "__main__":
     generator = ShortcutGenerator()
     generator.seed(0)
 
-    generator.generate_grid(grid_height=100, grid_width=150, blocker_prob=0.475, desired_walkability=0.6)
+    generator.generate_grid(grid_height=100, grid_width=100, blocker_prob=0.475, desired_walkability=0.6)
     generator.generate_shortcut_hubs(num_shortcut_hubs=11)
-    generator.generate_shortcuts(shortcut_hub_radii=[2, 4, 6])
+    generator.generate_shortcut_connections(shortcut_hub_radii=[2, 4, 6])
+    generator.set_shortcut_costs(shortcut_costs=[-1.0, -5.0, -10.0])
 
     generator.render()
