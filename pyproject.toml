@@ -1,0 +1,47 @@
+[build-system]
+requires      = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "simpleenvs"
+description = "Implementations of various sequential decision problems as MDPs using the SimpleOptions framework."
+authors = [{ name = "Joshua Evans", email = "jbe25@bath.ac.uk" }]
+readme = "README.md"
+license = { file = "LICENSE" }
+version = "0.5.0"
+requires-python = ">=3.11"
+dependencies = [
+    "simpleoptions",
+    "importlib_resources",
+    "importlib_metadata",
+    "numpy",
+    "networkx",
+    "pygame",
+    "gymnasium",
+    "distinctipy",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Natural Language :: English",
+]
+
+[project.urls]
+homepage = "https://github.com/Ueva/BaRL-Envs"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["simpleenvs", "test"]
+
+[tool.setuptools.package-data]
+simpleenvs = ["*.txt", "*.png"]
+
+[tool.ruff]
+line-length = 120
