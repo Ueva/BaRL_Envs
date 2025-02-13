@@ -274,9 +274,9 @@ class TestFourRoomsPenalty:
             next_states.update([ns for ((ns, _), _) in t])
         print(f"tm_states: {tm_states}")
         print(f"next_states: {next_states}")
-        print(f"(10,2) in tm_states: {(10,2) in tm_states}")
-        print(f"(10,2) in next_states: {(10,2) in next_states}")
-        print(f"self.env.reset((10,2,1)) = {self.env.reset((10,2,1))}")
+        print(f"(10,2) in tm_states: {(10, 2) in tm_states}")
+        print(f"(10,2) in next_states: {(10, 2) in next_states}")
+        print(f"self.env.reset((10,2,1)) = {self.env.reset((10, 2, 1))}")
 
         assert self.env.reset((10, 2, 1)) == (10, 2, 1)
 
