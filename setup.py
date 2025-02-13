@@ -39,7 +39,6 @@ setuptools.setup(
             "renderers/taxi_renderer_resources/taxi_empty.png",
             "renderers/taxi_renderer_resources/passenger.png",
             "renderers/taxi_renderer_resources/goal_flag.png",
-            "envs/grid_pacman/data/four_room.txt",
         ]
     },
     include_package_data=True,
