@@ -8,7 +8,7 @@ description = "Implementations of various sequential decision problems as MDPs u
 authors = [{ name = "Joshua Evans", email = "jbe25@bath.ac.uk" }]
 readme = "README.md"
 license = { file = "LICENSE" }
-version = "0.6.0"
+version = "0.6.1"
 requires-python = ">=3.11"
 dependencies = [
     "simpleoptions",
@@ -32,13 +32,13 @@ classifiers = [
 ]
 
 [project.urls]
-homepage = "https://github.com/Ueva/BaRL-Envs"
+homepage = "https://github.com/Ueva/BaRL_Envs"
 
 [tool.setuptools]
 include-package-data = true
 
 [tool.setuptools.packages.find]
-where = ["simpleenvs", "test"]
+where = ["."]
 
 [tool.setuptools.package-data]
 simpleenvs = ["*.txt", "*.png"]
