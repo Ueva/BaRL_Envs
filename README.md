@@ -1,8 +1,9 @@
-# simpleenvs
+# SimpleEnvs
+
 A collection of Reinforcement Learning (RL) environments which I have implemented as part of my research. Hopefully this collection will grow over time, and prove useful to others as well.
 
-All of these environments use an interaction API similar to that used by [OpenAI Gym](https://github.com/openai/gym), however we do not implement Gym's `Env` class directly.
+All of these environments use an interaction API similar to that used by [OpenAI Gym](https://github.com/openai/gym), however we do not implement Gym's `Env` class directly. Instead, we use the [SimpleOptions](https://github.com/Ueva/BaRL-SimpleOptions/blob/master/simpleoptions/environment.py) `BaseEnvironment` interface.
 
-Further documentation coming soon!
+Many of the smaller, discrete environments (e.g. Taxi, Hanoi, Rooms) are designed with graph-based reinforcement learning methods in mind. They naturally support building state transition graphs out-of-the-box using the built-in `generate_interaction_graph` method, and one-step lookahead is available using the `get_successors` method.
 
-Many of the smaller, discrete environments (e.g. Taxi, Hanoi, Rooms) are designed to be friendly for use with graph-based methods. If you wish to construct a state-transition graph for an environment, you can do so like [this](https://gist.github.com/Ueva/aadbb0b396466ad2a16dc629ba924b45).
+The code in this repository is well commented, but additional examples and documentation are coming soon!
