@@ -19,7 +19,9 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
     Class representing a discrete "rooms-like" gridworld, as is commonly seen in the HRL literature.
     """
 
-    def __init__(self, room_template_file_path, movement_penalty=-0.001, goal_reward=1.0):
+    def __init__(
+        self, room_template_file_path, movement_penalty=-0.001, goal_reward=1.0, start_state=None, goal_state=None
+    ):
         """
         Initialises a new DiscreteRoomEnvironment object.
 
@@ -29,9 +31,38 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
         Keyword Arguments:
             movement_penalty {float} -- Penalty applied each time step for taking an action. (default: {-1.0})
             goal_reward {float} -- Reward given to the agent upon reaching a goal state. (default: {10.0})
+            start_state {(int, int)} -- The initial state to use. Defaults to None, in which case an state is chosen according to the environment's initial state distribution.
+            goal_state {(int, int)} -- The goal state to use. Defaults to None, in which case an state is chosen according to the environment's goal state distribution.
         """
-        self._initialise_rooms(room_template_file_path)
+        self.initial_states = []
+        self.terminal_states = []
+
+        # Read gridworld from provided file path.
+        self._initialise_rooms(
+            room_template_file_path,
+            find_start_states=start_state is None,
+            find_goal_states=goal_state is None,
+        )
         self._initialise_state_space()
+
+        # If specified, set custom start state and check that it is valid.
+        if start_state is not None:
+            self.initial_states.append(start_state)
+
+        if start_state is not None and start_state not in self.state_space:
+            raise ValueError(f"Start state {start_state} is not a valid state in this gridworld.")
+
+        # If specified, set custom goal state and check that it is valid.
+        if goal_state is not None:
+            self.terminal_states.append(goal_state)
+
+        if goal_state is not None and goal_state not in self.state_space:
+            raise ValueError(f"Goal state {goal_state} is not a valid state in this gridworld.")
+
+        # If both start and goal states are specified, check that they are different.
+        if start_state is not None and goal_state is not None:
+            assert start_state != goal_state, "Start and goal states must be different."
+
         self.movement_penalty = movement_penalty
         self.goal_reward = goal_reward
         self.is_reset = False
@@ -40,7 +71,7 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
 
         super().__init__(deterministic=True)
 
-    def _initialise_rooms(self, room_template_file_path):
+    def _initialise_rooms(self, room_template_file_path, find_start_states=True, find_goal_states=True):
         """
         Initialises the envionment according to a given template file.
 
@@ -52,16 +83,14 @@ class DiscreteRoomEnvironment(TransitionMatrixBaseEnvironment):
         self.gridworld = np.loadtxt(room_template_file_path, comments="//", dtype=str)
 
         # Discover start and goal states.
-        self.initial_states = []
-        self.terminal_states = []
         for y in range(self.gridworld.shape[0]):
             for x in range(self.gridworld.shape[1]):
                 if self.gridworld[y, x] not in CELL_TYPES_DICT:
                     if not self.gridworld[y, x].replace("-", "", 1).isnumeric():
                         raise ValueError(f"Invalid cell type '{self.gridworld[y, x]}' in room template file.")
-                elif CELL_TYPES_DICT[self.gridworld[y, x]] == "start":
+                elif find_start_states and CELL_TYPES_DICT[self.gridworld[y, x]] == "start":
                     self.initial_states.append((y, x))
-                elif CELL_TYPES_DICT[self.gridworld[y, x]] == "goal":
+                elif find_goal_states and CELL_TYPES_DICT[self.gridworld[y, x]] == "goal":
                     self.terminal_states.append((y, x))
 
     def _initialise_state_space(self):
@@ -286,8 +315,8 @@ class TwoRooms(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.001, goal_reward=1):
-        super().__init__(default_two_room, movement_penalty, goal_reward)
+    def __init__(self, movement_penalty=-0.001, goal_reward=1, start_state=None, goal_state=None):
+        super().__init__(default_two_room, movement_penalty, goal_reward, start_state, goal_state)
 
 
 class SixRooms(DiscreteRoomEnvironment):
@@ -297,8 +326,8 @@ class SixRooms(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.001, goal_reward=1):
-        super().__init__(default_six_room, movement_penalty, goal_reward)
+    def __init__(self, movement_penalty=-0.001, goal_reward=1, start_state=None, goal_state=None):
+        super().__init__(default_six_room, movement_penalty, goal_reward, start_state, goal_state)
 
 
 class NineRooms(DiscreteRoomEnvironment):
@@ -308,8 +337,8 @@ class NineRooms(DiscreteRoomEnvironment):
     Movement Penalty: -0.001
     """
 
-    def __init__(self, movement_penalty=-0.001, goal_reward=1):
-        super().__init__(default_nine_room, movement_penalty, goal_reward)
+    def __init__(self, movement_penalty=-0.001, goal_reward=1, start_state=None, goal_state=None):
+        super().__init__(default_nine_room, movement_penalty, goal_reward, start_state, goal_state)
 
 
 class XuFourRooms(DiscreteRoomEnvironment):
@@ -321,8 +350,8 @@ class XuFourRooms(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.001, goal_reward=1):
-        super().__init__(xu_four_room, movement_penalty, goal_reward)
+    def __init__(self, movement_penalty=-0.001, goal_reward=1, start_state=None, goal_state=None):
+        super().__init__(xu_four_room, movement_penalty, goal_reward, start_state, goal_state)
 
 
 class BridgeRoom(DiscreteRoomEnvironment):
@@ -333,8 +362,8 @@ class BridgeRoom(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.001, goal_reward=1):
-        super().__init__(bridge_room, movement_penalty, goal_reward)
+    def __init__(self, movement_penalty=-0.001, goal_reward=1, start_state=None, goal_state=None):
+        super().__init__(bridge_room, movement_penalty, goal_reward, start_state, goal_state)
 
 
 class CageRoom(DiscreteRoomEnvironment):
@@ -344,8 +373,8 @@ class CageRoom(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.001, goal_reward=1):
-        super().__init__(cage_room, movement_penalty, goal_reward)
+    def __init__(self, movement_penalty=-0.001, goal_reward=1, start_state=None, goal_state=None):
+        super().__init__(cage_room, movement_penalty, goal_reward, start_state, goal_state)
 
 
 class EmptyRoom(DiscreteRoomEnvironment):
@@ -355,8 +384,8 @@ class EmptyRoom(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.001, goal_reward=1):
-        super().__init__(empty_room, movement_penalty, goal_reward)
+    def __init__(self, movement_penalty=-0.001, goal_reward=1, start_state=None, goal_state=None):
+        super().__init__(empty_room, movement_penalty, goal_reward, start_state, goal_state)
 
 
 class SmallRooms(DiscreteRoomEnvironment):
@@ -367,8 +396,8 @@ class SmallRooms(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.001, goal_reward=1):
-        super().__init__(small_rooms, movement_penalty, goal_reward)
+    def __init__(self, movement_penalty=-0.001, goal_reward=1, start_state=None, goal_state=None):
+        super().__init__(small_rooms, movement_penalty, goal_reward, start_state, goal_state)
 
 
 class FourRooms(DiscreteRoomEnvironment):
@@ -378,8 +407,8 @@ class FourRooms(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.001, goal_reward=1):
-        super().__init__(four_rooms, movement_penalty, goal_reward)
+    def __init__(self, movement_penalty=-0.001, goal_reward=1, start_state=None, goal_state=None):
+        super().__init__(four_rooms, movement_penalty, goal_reward, start_state, goal_state)
 
 
 class FourRoomsHoles(DiscreteRoomEnvironment):
@@ -389,8 +418,8 @@ class FourRoomsHoles(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.001, goal_reward=1):
-        super().__init__(four_rooms_holes, movement_penalty, goal_reward)
+    def __init__(self, movement_penalty=-0.001, goal_reward=1, start_state=None, goal_state=None):
+        super().__init__(four_rooms_holes, movement_penalty, goal_reward), start_state, goal_state
 
 
 class MazeRooms(DiscreteRoomEnvironment):
@@ -400,8 +429,8 @@ class MazeRooms(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.001, goal_reward=1):
-        super().__init__(maze_rooms, movement_penalty, goal_reward)
+    def __init__(self, movement_penalty=-0.001, goal_reward=1, start_state=None, goal_state=None):
+        super().__init__(maze_rooms, movement_penalty, goal_reward, start_state, goal_state)
 
 
 class SpiralRoom(DiscreteRoomEnvironment):
@@ -411,8 +440,8 @@ class SpiralRoom(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.001, goal_reward=1):
-        super().__init__(spiral_rooms, movement_penalty, goal_reward)
+    def __init__(self, movement_penalty=-0.001, goal_reward=1, start_state=None, goal_state=None):
+        super().__init__(spiral_rooms, movement_penalty, goal_reward, start_state, goal_state)
 
 
 class ParrMaze(DiscreteRoomEnvironment):
@@ -423,8 +452,8 @@ class ParrMaze(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.001, goal_reward=1):
-        super().__init__(parr_maze, movement_penalty, goal_reward)
+    def __init__(self, movement_penalty=-0.001, goal_reward=1, start_state=None, goal_state=None):
+        super().__init__(parr_maze, movement_penalty, goal_reward, start_state, goal_state)
 
 
 class ParrMiniMaze(DiscreteRoomEnvironment):
@@ -435,8 +464,8 @@ class ParrMiniMaze(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.001, goal_reward=1):
-        super().__init__(parr_mini_maze, movement_penalty, goal_reward)
+    def __init__(self, movement_penalty=-0.001, goal_reward=1, start_state=None, goal_state=None):
+        super().__init__(parr_mini_maze, movement_penalty, goal_reward, start_state, goal_state)
 
 
 class RameshMaze(DiscreteRoomEnvironment):
@@ -446,8 +475,8 @@ class RameshMaze(DiscreteRoomEnvironment):
     Movement Penalty: -0.01
     """
 
-    def __init__(self, movement_penalty=-0.001, goal_reward=1):
-        super().__init__(ramesh_maze, movement_penalty, goal_reward)
+    def __init__(self, movement_penalty=-0.001, goal_reward=1, start_state=None, goal_state=None):
+        super().__init__(ramesh_maze, movement_penalty, goal_reward, start_state, goal_state)
 
 
 class WidePath(DiscreteRoomEnvironment):
@@ -455,8 +484,8 @@ class WidePath(DiscreteRoomEnvironment):
     A single-room environment featuring a wide path from the starting state to the goal state.
     """
 
-    def __init__(self, movement_penalty=-0.001, goal_reward=1):
-        super().__init__(wide_path, movement_penalty, goal_reward)
+    def __init__(self, movement_penalty=-0.001, goal_reward=1, start_state=None, goal_state=None):
+        super().__init__(wide_path, movement_penalty, goal_reward, start_state, goal_state)
 
 
 class SnakeRoom(DiscreteRoomEnvironment):
